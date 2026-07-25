@@ -19,13 +19,6 @@ htmlcov/
 # Jupyter Notebook Checkpoints
 .ipynb_checkpoints/
 
-# Model Files & Large Binary Artifacts
-*.pkl
-*.joblib
-*.h5
-*.onnx
-*.pt
-*.pth
 
 # Environment & Secrets
 .env
