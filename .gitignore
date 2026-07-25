@@ -26,6 +26,10 @@ htmlcov/
 *.local
 *.log
 
+# OAuth tokens (contain sensitive credentials — never commit)
+token.json
+.oauth_state
+
 # Operating System & IDE Files
 .DS_Store
 Thumbs.db
