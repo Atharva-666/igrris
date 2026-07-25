@@ -5,6 +5,7 @@ env/
 ENV/
 env.bak/
 venv.bak/
+.agents/
 
 # Python Bytecode & Cache
 __pycache__/
