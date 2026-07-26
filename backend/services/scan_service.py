@@ -80,8 +80,13 @@ def run_scan(
     label_ids_map = ensure_labels_exist(service)
 
     if not label_ids_map:
-        logger.error("Failed to create/find AI labels. Aborting scan.")
-        return
+        msg = (
+            "Failed to create or access Gmail labels. "
+            "Please ensure the **Gmail API** is enabled in your Google Cloud Console "
+            "(https://console.cloud.google.com/apis/library/gmail.googleapis.com)."
+        )
+        logger.error(msg)
+        raise RuntimeError(msg)
 
     all_ai_label_ids = list(label_ids_map.values())
 

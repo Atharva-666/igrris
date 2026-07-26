@@ -55,23 +55,23 @@ def _client_config() -> dict:
     }
 
 
-def _save_state(state: str) -> None:
-    """Persist OAuth state to disk so it survives the browser redirect."""
+def _save_state(state: str, code_verifier: str | None = None) -> None:
+    """Persist OAuth state and code_verifier (PKCE) to disk so it survives the browser redirect."""
     with open(OAUTH_STATE_FILE, "w") as f:
-        json.dump({"state": state}, f)
+        json.dump({"state": state, "code_verifier": code_verifier}, f)
 
 
-def _load_state() -> str | None:
-    """Load and delete saved OAuth state. Returns None if not found."""
+def _load_state() -> tuple[str | None, str | None]:
+    """Load and delete saved OAuth state + code_verifier. Returns (state, code_verifier)."""
     if not os.path.exists(OAUTH_STATE_FILE):
-        return None
+        return None, None
     try:
         with open(OAUTH_STATE_FILE, "r") as f:
             data = json.load(f)
-        return data.get("state")
+        return data.get("state"), data.get("code_verifier")
     except Exception as e:
         logger.warning("Could not load OAuth state: %s", e)
-        return None
+        return None, None
     finally:
         # Always remove state file after reading — it is single-use
         try:
@@ -88,8 +88,8 @@ def get_auth_url() -> str:
     """
     Build and return the Google OAuth 2.0 authorization URL.
 
-    The generated 'state' parameter is saved to disk so it can be
-    verified when Google redirects back to the app.
+    The generated 'state' parameter and PKCE 'code_verifier' are saved to disk
+    so they can be verified when Google redirects back to the app.
     """
     if not GOOGLE_CLIENT_ID or not GOOGLE_CLIENT_SECRET:
         raise EnvironmentError(
@@ -105,7 +105,8 @@ def get_auth_url() -> str:
         prompt="consent",               # always show consent screen to get refresh token
     )
 
-    _save_state(state)
+    code_verifier = getattr(flow, "code_verifier", None)
+    _save_state(state, code_verifier)
     logger.info("Authorization URL generated.")
     return url
 
@@ -124,7 +125,7 @@ def exchange_code(code: str) -> Credentials:
     Credentials
         Valid Google OAuth credentials with access + refresh tokens.
     """
-    state = _load_state()  # may be None if state file was lost
+    state, code_verifier = _load_state()  # may be (None, None) if state file was lost
 
     flow = Flow.from_client_config(
         _client_config(),
@@ -132,6 +133,8 @@ def exchange_code(code: str) -> Credentials:
         state=state,  # None = skip state verification (safe for local dev)
     )
     flow.redirect_uri = REDIRECT_URI
+    if code_verifier:
+        flow.code_verifier = code_verifier
 
     # fetch_token exchanges the code for access + refresh tokens
     flow.fetch_token(code=code)
