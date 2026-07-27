@@ -1,0 +1,1215 @@
+# =============================================================================
+# rules_config.yaml — MailShield AI Label Rule Engine Configuration
+#
+# Edit this file to tune classification without touching any Python code.
+# All keyword matches are case-insensitive substring searches.
+# Domain matches check the sender email address (after the @ symbol).
+# =============================================================================
+
+# ---------------------------------------------------------------------------
+# Confidence threshold — emails below this go to "Needs Review"
+# ---------------------------------------------------------------------------
+confidence_threshold: 0.70
+
+# ---------------------------------------------------------------------------
+# Label priority order — highest priority first
+# ---------------------------------------------------------------------------
+priority:
+  - Phishing
+  - Spam
+  - Security
+  - Needs Review
+  - Banking
+  - Orders
+  - Work
+  - Education
+  - Promotions
+  - Personal
+  - Trusted
+
+# ---------------------------------------------------------------------------
+# Label color definitions (Gmail fixed palette hex values)
+# ---------------------------------------------------------------------------
+label_colors:
+  Trusted:      { textColor: "#ffffff", backgroundColor: "#16a765" }
+  Spam:         { textColor: "#ffffff", backgroundColor: "#cc3a21" }
+  Needs Review: { textColor: "#000000", backgroundColor: "#f2c960" }
+  Phishing:     { textColor: "#ffffff", backgroundColor: "#a61c00" }
+  Security:     { textColor: "#ffffff", backgroundColor: "#4a86e8" }
+  Banking:      { textColor: "#ffffff", backgroundColor: "#0d7377" }
+  Orders:       { textColor: "#ffffff", backgroundColor: "#8e63ce" }
+  Promotions:   { textColor: "#ffffff", backgroundColor: "#e07c24" }
+  Education:    { textColor: "#ffffff", backgroundColor: "#07b6d5" }
+  Work:         { textColor: "#ffffff", backgroundColor: "#2c5f8a" }
+  Personal:     { textColor: "#ffffff", backgroundColor: "#5f6368" }
+
+# ---------------------------------------------------------------------------
+# PHISHING rules
+# ---------------------------------------------------------------------------
+phishing:
+  subject_keywords:
+    - "verify your account"
+    - "confirm your identity"
+    - "update your payment"
+    - "your account has been suspended"
+    - "unauthorized login attempt"
+    - "click here to verify"
+    - "enter your otp"
+    - "otp for"
+    - "one-time password"
+    - "your password has expired"
+    - "reset your password immediately"
+    - "suspicious activity detected"
+    - "account will be closed"
+    - "verify your email address"
+    - "confirm your login"
+    - "validate your account"
+    - "recover your account"
+    - "billing information required"
+    - "payment method declined"
+    - "update your credit card"
+    - "dear valued customer"
+    - "click the link below to verify"
+    - "your account will be deactivated"
+    - "act now to avoid suspension"
+    - "claim your reward"
+    - "you have been selected"
+    - "winner notification"
+    - "lottery winner"
+    - "you've won"
+    - "congratulations you have been chosen"
+    - "free gift claim"
+    - "urgent: action required"
+    - "account locked verify now"
+  body_keywords:
+    - "verify your identity"
+    - "enter your password"
+    - "click here to login"
+    - "your account is at risk"
+    - "we detected unusual activity"
+    - "confirm your account details"
+    - "provide your banking details"
+    - "log in to avoid suspension"
+    - "immediate action required"
+    - "your ssn"
+    - "your aadhaar"
+    - "provide your card number"
+  suspicious_domain_patterns:
+    - ".*-secure\\..*"
+    - ".*account.*verify.*"
+    - ".*login.*support.*"
+    - ".*secure.*login.*"
+    - ".*verify.*account.*"
+
+# ---------------------------------------------------------------------------
+# SECURITY rules — login/2FA/device alerts from known identity providers
+# NOTE: BOTH a domain match AND a keyword match are required.
+#       Domain alone is NOT enough — social notifications from these domains
+#       will fall through to Promotions/Personal correctly.
+# ---------------------------------------------------------------------------
+security:
+  subject_keywords:
+    - "new sign-in"
+    - "new login"
+    - "new device"
+    - "sign-in attempt"
+    - "login attempt"
+    - "two-factor authentication"
+    - "2-step verification"
+    - "two-step verification"
+    - "verification code"
+    - "authentication code"
+    - "security code"
+    - "account recovery"
+    - "password changed"
+    - "password reset"
+    - "your password was changed"
+    - "security alert"
+    - "unusual sign-in"
+    - "suspicious login"
+    - "new device added"
+    - "account access"
+    - "review recent activity"
+    - "sign in from new"
+    - "access from new"
+    - "your account was accessed"
+    - "login from unfamiliar"
+    - "we noticed a sign-in"
+    - "critical security"
+    - "recovery code"
+    - "backup code"
+    - "2fa enabled"
+    - "authenticator app"
+  body_keywords:
+    - "two-factor authentication"
+    - "2-step verification"
+    - "new device signed in"
+    - "we noticed a new sign-in"
+    - "your verification code is"
+    - "use this code to verify"
+    - "security code:"
+    - "authentication code:"
+    - "one-time passcode"
+    - "your sign-in code"
+    - "login verification"
+  # Identity providers and major services that send REAL security alerts.
+  # Social media domains deliberately excluded — their security emails
+  # will still match via subject_keywords above.
+  trusted_security_domains:
+    # Google
+    - google.com
+    - accounts.google.com
+    - mail.google.com
+    - no-reply.accounts.google.com
+    # Microsoft
+    - microsoft.com
+    - account.microsoft.com
+    - microsoftonline.com
+    - accountprotection.microsoft.com
+    - live.com
+    - hotmail.com
+    - outlook.com
+    # Apple
+    - apple.com
+    - id.apple.com
+    - icloud.com
+    - appleid.apple.com
+    # GitHub / GitLab / Bitbucket
+    - github.com
+    - gitlab.com
+    - bitbucket.org
+    - atlassian.com
+    # Payment / Financial
+    - paypal.com
+    - stripe.com
+    - wise.com
+    - razorpay.com
+    - cashfree.com
+    # E-commerce identity
+    - amazon.com
+    - amazon.in
+    - flipkart.com
+    - shopify.com
+    # Streaming / Entertainment
+    - netflix.com
+    - spotify.com
+    - disney.com
+    - primevideo.com
+    - hotstar.com
+    # Gaming platforms
+    - steampowered.com
+    - steam.com
+    - epicgames.com
+    - ea.com
+    - blizzard.com
+    - playstation.com
+    - xbox.com
+    - nintendo.com
+    - riot.com
+    - riotgames.com
+    # Communication & Productivity
+    - dropbox.com
+    - box.com
+    - zoom.us
+    - slack.com
+    - discord.com
+    - notion.so
+    - airtable.com
+    - clickup.com
+    - asana.com
+    - trello.com
+    - monday.com
+    # Cloud & DevOps
+    - aws.amazon.com
+    - amazon.aws
+    - azure.com
+    - digitalocean.com
+    - heroku.com
+    - vercel.com
+    - netlify.com
+    - cloudflare.com
+    - firebase.google.com
+    # Email providers
+    - yahoo.com
+    - protonmail.com
+    - zoho.com
+    - fastmail.com
+    # Other major tech
+    - adobe.com
+    - salesforce.com
+    - hubspot.com
+    - twitch.tv
+    - reddit.com
+    - quora.com
+    - medium.com
+    - wordpress.com
+    - wix.com
+    # Indian services
+    - paytm.com
+    - phonepe.com
+    - mobikwik.com
+    - bajajfinserv.in
+    - zerodha.com
+    - groww.in
+    - upstox.com
+    - jio.com
+    - airtel.in
+    - bsnl.in
+    - uidai.gov.in
+    - incometax.gov.in
+    - irctc.co.in
+    - digilocker.gov.in
+
+# ---------------------------------------------------------------------------
+# BANKING rules
+# ---------------------------------------------------------------------------
+banking:
+  subject_keywords:
+    - "transaction alert"
+    - "account statement"
+    - "bank statement"
+    - "payment received"
+    - "payment confirmed"
+    - "debit alert"
+    - "credit alert"
+    - "amount debited"
+    - "amount credited"
+    - "funds transferred"
+    - "bank transfer"
+    - "net banking"
+    - "upi transaction"
+    - "neft transaction"
+    - "imps transaction"
+    - "rtgs transaction"
+    - "atm transaction"
+    - "card used"
+    - "card transaction"
+    - "your emi"
+    - "loan statement"
+    - "account balance"
+    - "mini statement"
+    - "monthly statement"
+    - "card statement"
+    - "cheque bounce"
+    - "cheque deposited"
+    - "cash deposited"
+    - "cash withdrawn"
+    - "fd maturity"
+    - "rd maturity"
+    - "interest credited"
+    - "mutual fund"
+    - "sip payment"
+    - "stock traded"
+    - "dividend credited"
+    - "tax deducted"
+    - "tds deducted"
+  trusted_banking_domains:
+    # Indian Public Sector Banks
+    - sbi.co.in
+    - onlinesbi.com
+    - sbionline.co.in
+    - bobibanking.com
+    - bankofbaroda.in
+    - bankofbaroda.co.in
+    - bankofindia.co.in
+    - bankofindia.com
+    - canarabank.com
+    - canarabank.in
+    - unionbankofindia.co.in
+    - unionbankofindia.com
+    - punjabnationalbank.in
+    - pnbindia.in
+    - indianbank.in
+    - allahababank.in
+    - mahabank.co.in
+    - centralbankofindia.co.in
+    - ucobank.com
+    - syndicatebank.in
+    - vijayabank.co.in
+    # Indian Private Banks
+    - hdfcbank.com
+    - icicibank.com
+    - axisbank.com
+    - kotakbank.com
+    - kotak.com
+    - yesbank.in
+    - indusind.com
+    - rblbank.com
+    - federalbank.co.in
+    - idfcfirstbank.com
+    - bandhanbank.com
+    - equitasbank.com
+    - aubank.in
+    - ujjivansfb.in
+    - smallfinancebank.com
+    # Indian Digital & Fintech Banks
+    - paytmbank.com
+    - fibank.in
+    - jupiter.money
+    - niyo.co
+    - slice.com
+    - fibe.in
+    - kreditbee.in
+    - lazypay.in
+    # International Banks
+    - citi.com
+    - citibank.com
+    - citibankindia.com
+    - hsbc.co.in
+    - hsbc.com
+    - standardchartered.com
+    - sc.com
+    - deutschebank.com
+    - db.com
+    - barclays.co.uk
+    - barclays.com
+    - lloydsbank.com
+    - natwest.com
+    - santander.com
+    - santander.co.uk
+    - bnpparibas.com
+    - societegenerale.com
+    - creditsuisse.com
+    - ubs.com
+    - abnamro.com
+    - rabobank.com
+    - ingbank.com
+    - ing.com
+    # US Banks
+    - chase.com
+    - bankofamerica.com
+    - wellsfargo.com
+    - capitalone.com
+    - usbank.com
+    - tdbank.com
+    - pnc.com
+    - citigroup.com
+    - goldmansachs.com
+    - morganstanley.com
+    - americanexpress.com
+    - discover.com
+    - synchrony.com
+    - ally.com
+    - charlesschwab.com
+    - fidelity.com
+    - vanguard.com
+    - t-mobilebank.com
+    # Payments & Wallets
+    - razorpay.com
+    - cashfree.com
+    - billdesk.com
+    - ccavenue.com
+    - payu.in
+    - payumoney.com
+    - instamojo.com
+    - decentro.tech
+    - yesbank.in
+    - upi.npci.org.in
+    - npci.org.in
+    - visa.com
+    - mastercard.com
+    - rupay.co.in
+    - amex.com
+    - square.com
+    - stripe.com
+
+# ---------------------------------------------------------------------------
+# ORDERS rules — shopping / delivery
+# ---------------------------------------------------------------------------
+orders:
+  subject_keywords:
+    - "order confirmed"
+    - "order confirmation"
+    - "order placed"
+    - "order received"
+    - "order shipped"
+    - "order dispatched"
+    - "order out for delivery"
+    - "order delivered"
+    - "package delivered"
+    - "shipment tracking"
+    - "tracking number"
+    - "track your order"
+    - "track your package"
+    - "your receipt"
+    - "payment receipt"
+    - "invoice #"
+    - "invoice attached"
+    - "your invoice"
+    - "return initiated"
+    - "refund processed"
+    - "refund initiated"
+    - "delivery attempt"
+    - "delivery scheduled"
+    - "estimated delivery"
+    - "ready for pickup"
+    - "pick up your"
+    - "shipment update"
+    - "your parcel"
+    - "out for delivery"
+    - "delivered successfully"
+    - "order cancellation"
+    - "order cancelled"
+    - "replacement initiated"
+    - "exchange initiated"
+    - "prepaid order"
+    - "cod order"
+    - "cash on delivery"
+    - "your booking"
+    - "booking confirmed"
+    - "reservation confirmed"
+    - "purchase summary"
+  trusted_retail_domains:
+    # Indian E-commerce
+    - amazon.in
+    - amazon.com
+    - flipkart.com
+    - myntra.com
+    - meesho.com
+    - ajio.com
+    - nykaa.com
+    - nykaabeauty.com
+    - snapdeal.com
+    - paytmmall.com
+    - tatacliq.com
+    - reliance.com
+    - jiomart.com
+    - shopclues.com
+    - craftsvilla.com
+    - firstcry.com
+    - babyoye.com
+    - bewakoof.com
+    - manyavar.com
+    - libas.in
+    - biba.in
+    - wforwoman.com
+    - westside.com
+    - pantaloons.com
+    - lifestyle.com
+    - shopper-stop.com
+    - pepperfry.com
+    - urbanladder.com
+    - godrej.com
+    - ikea.com
+    - home.samsclub.com
+    - croma.com
+    - reliancedigital.in
+    - vijaysales.com
+    - lenskart.com
+    - spectasite.com
+    - caratlane.com
+    - bluestone.com
+    - tanishq.co.in
+    - kalyan.in
+    # Indian Grocery & Food
+    - bigbasket.com
+    - blinkit.com
+    - zepto.in
+    - dunzo.com
+    - swiggy.com
+    - swiggyinstamart.com
+    - zomato.com
+    - zomatohyperpure.com
+    - fresh.amazon.in
+    - milkbasket.com
+    - supr.daily
+    - country-delight.com
+    # Indian Travel
+    - makemytrip.com
+    - goibibo.com
+    - yatra.com
+    - easemytrip.com
+    - cleartrip.com
+    - ixigo.com
+    - irctc.co.in
+    - irctctourism.com
+    - redbus.in
+    - abhibus.com
+    - zoomcar.com
+    - myles.cars
+    - avis.co.in
+    - hertz.co.in
+    - ola.io
+    - olacabs.com
+    - uber.com
+    - rapido.bike
+    - olaelectric.com
+    - blablacar.in
+    # Airlines
+    - airindia.in
+    - indigo.in
+    - goair.in
+    - spicejet.com
+    - vistara.com
+    - airasia.com
+    - airasiaindia.in
+    - starair.in
+    - allianceair.in
+    - akasaair.com
+    # Indian Telecom
+    - jio.com
+    - airtel.in
+    - airtelindia.com
+    - vodafone.in
+    - idea.adityabirla.com
+    - vi.in
+    - bsnl.in
+    # International E-commerce
+    - ebay.com
+    - walmart.com
+    - target.com
+    - bestbuy.com
+    - costco.com
+    - macys.com
+    - nordstrom.com
+    - etsy.com
+    - wayfair.com
+    - overstock.com
+    - newegg.com
+    - bhphotovideo.com
+    - adorama.com
+    - asos.com
+    - zara.com
+    - hm.com
+    - uniqlo.com
+    - gap.com
+    - oldnavy.com
+    - banana-republic.com
+    - nike.com
+    - adidas.com
+    - puma.com
+    - reebok.com
+    - underarmour.com
+    - levi.com
+    - levis.com
+    - tommy.com
+    - lacoste.com
+    - calvinklein.com
+    - ralphlauren.com
+    - burberry.com
+    - gucci.com
+    - louisvuitton.com
+    - prada.com
+    - dior.com
+    - tiffany.com
+    - apple.com
+    - samsung.com
+    - sony.com
+    - lg.com
+    - dell.com
+    - hp.com
+    - lenovo.com
+    - asus.com
+    - msi.com
+    - razer.com
+    - logitech.com
+    - bose.com
+    - jbl.com
+    - skullcandy.com
+    - anker.com
+    # Delivery / Logistics
+    - fedex.com
+    - ups.com
+    - dhl.com
+    - usps.com
+    - tnt.com
+    - shiprocket.in
+    - ecomexpress.com
+    - bluedart.com
+    - dtdc.in
+    - delhivery.com
+    - shadowfax.in
+    - xpressbees.com
+    - borzo.in
+    - lalamove.com
+    - porter.in
+    - dunzo.com
+    - indiapost.gov.in
+    - royalmail.com
+    - dpd.com
+    - gls-group.eu
+    - dpd.co.uk
+    - parcelforce.com
+    - hermes.com
+    - evri.com
+    # Ticketing & Events
+    - bookmyshow.com
+    - paytminsider.com
+    - insider.in
+    - townscript.com
+    - ticketmaster.com
+    - eventbrite.com
+    - stubhub.com
+    - viagogo.com
+    # Subscriptions
+    - netflix.com
+    - primevideo.com
+    - hotstar.com
+    - jiocinema.com
+    - sonyliv.com
+    - zee5.com
+    - mxplayer.in
+    - spotify.com
+    - gaana.com
+    - wynk.in
+    - jiosaavn.com
+    - hungama.com
+    - apple.com
+    - google.com
+
+# ---------------------------------------------------------------------------
+# PROMOTIONS rules — marketing emails, newsletters, social media notifications
+# ---------------------------------------------------------------------------
+promotions:
+  subject_keywords:
+    - "sale"
+    - "% off"
+    - "flat off"
+    - "upto off"
+    - "discount"
+    - "coupon"
+    - "promo code"
+    - "offer"
+    - "limited time"
+    - "exclusive deal"
+    - "buy now"
+    - "shop now"
+    - "don't miss"
+    - "hurry"
+    - "last chance"
+    - "ends today"
+    - "ends tonight"
+    - "flash sale"
+    - "clearance"
+    - "free shipping"
+    - "subscribe"
+    - "unsubscribe"
+    - "newsletter"
+    - "new arrivals"
+    - "just dropped"
+    - "new collection"
+    - "black friday"
+    - "cyber monday"
+    - "diwali sale"
+    - "big billion"
+    - "great indian festival"
+    - "cashback"
+    - "earn rewards"
+    - "loyalty points"
+    - "referral bonus"
+    - "invite a friend"
+    - "get rewarded"
+    - "you've been selected"
+    - "weekly digest"
+    - "monthly digest"
+    - "top stories"
+    - "trending now"
+    - "curated for you"
+    - "recommended for you"
+    - "you might like"
+    - "based on your interest"
+    - "new episode"
+    - "new season"
+    - "watch now"
+    - "stream now"
+    - "notification from"
+    - "sent you a message"
+    - "commented on"
+    - "liked your"
+    - "followed you"
+    - "wants to connect"
+    - "connection request"
+    - "viewed your profile"
+    - "mentioned you"
+    - "tagged you"
+    - "new follower"
+    - "friend suggestion"
+    - "people you may know"
+    - "grow your network"
+    - "suggested for you"
+    - "invitation to connect"
+    - "new message from"
+    - "has sent you a"
+    - "group suggestion"
+    - "page suggestion"
+  # Sender domains whose emails should default to Promotions
+  promotional_domains:
+    # Social media (all notifications)
+    - linkedin.com
+    - e.linkedin.com
+    - notifications.linkedin.com
+    - twitter.com
+    - mail.twitter.com
+    - facebook.com
+    - facebookmail.com
+    - mail.facebook.com
+    - instagram.com
+    - mail.instagram.com
+    - tiktok.com
+    - snaptchat.com
+    - snapchat.com
+    - pinterest.com
+    - reddit.com
+    - quora.com
+    - medium.com
+    - telegram.org
+    - whatsapp.com
+    - signal.org
+    - discord.com
+    - tumblr.com
+    - flickr.com
+    - vimeo.com
+    - youtube.com
+    - youtubemail.com
+    # News & Content
+    - newsletter.thehindu.com
+    - hindustantimes.com
+    - timesofindia.com
+    - ndtv.com
+    - indiatimes.com
+    - news18.com
+    - aajtak.in
+    - zeenews.in
+    - thewire.in
+    - theprint.in
+    - scroll.in
+    - livemint.com
+    - economictimes.com
+    - businessstandard.com
+    - moneycontrol.com
+    - bbc.co.uk
+    - bbc.com
+    - cnn.com
+    - cnbc.com
+    - reuters.com
+    - bloomberg.com
+    - theguardian.com
+    - nytimes.com
+    - washingtonpost.com
+    - forbes.com
+    - fortune.com
+    - techcrunch.com
+    - theverge.com
+    - wired.com
+    - ars-technica.com
+    - arstechnica.com
+    - engadget.com
+    - gizmodo.com
+    - mashable.com
+    - producthunt.com
+    - hackernews.com
+    - substack.com
+    - mailchimp.com
+    - sendgrid.net
+    - constantcontact.com
+    - klaviyo.com
+    - brevo.com
+    - campaigns.mailchimp.com
+    - e.mail.salesforce.com
+    # Deals aggregators
+    - dealnews.com
+    - slickdeals.net
+    - camelcamelcamel.com
+    - cashkaro.com
+    - coupons.com
+    - offers.com
+    - vcommission.com
+    - cuelinks.com
+    - sharechat.com
+    - moj.tv
+    # Entertainment
+    - primevideo.com
+    - hotstar.com
+    - netflix.com
+    - spotify.com
+    - gaana.com
+    - wynk.in
+    - jiosaavn.com
+    - bookmyshow.com
+    - hungama.com
+    - zee5.com
+    - sonyliv.com
+    - mxplayer.in
+    - altbalaji.com
+
+# ---------------------------------------------------------------------------
+# EDUCATION rules
+# ---------------------------------------------------------------------------
+education:
+  subject_keywords:
+    - "assignment"
+    - "homework"
+    - "lecture"
+    - "exam"
+    - "test scheduled"
+    - "quiz"
+    - "semester"
+    - "course update"
+    - "enrollment"
+    - "admission"
+    - "scholarship"
+    - "certificate"
+    - "transcript"
+    - "grade"
+    - "marks"
+    - "result published"
+    - "timetable"
+    - "syllabus"
+    - "university"
+    - "college"
+    - "school"
+    - "coaching"
+    - "webinar"
+    - "workshop"
+    - "training completion"
+    - "course completed"
+    - "learning path"
+    - "online class"
+    - "live class"
+    - "recorded session"
+    - "hall ticket"
+    - "admit card"
+    - "mark sheet"
+    - "degree certificate"
+    - "internship"
+    - "placement"
+    - "campus recruitment"
+    - "cutoff"
+    - "rank list"
+    - "merit list"
+    - "fee payment"
+    - "tuition fee"
+    - "hostel fee"
+    - "term fee"
+    - "examination schedule"
+  trusted_education_domains:
+    # Global MOOC Platforms
+    - coursera.org
+    - udemy.com
+    - edx.org
+    - khanacademy.org
+    - udacity.com
+    - skillshare.com
+    - pluralsight.com
+    - codecademy.com
+    - freecodecamp.org
+    - brilliant.org
+    - masterclass.com
+    - domestika.org
+    - futurelearn.com
+    - openlearning.com
+    - alison.com
+    - simplilearn.com
+    - upgrad.com
+    - great-learning.com
+    - greatlearning.in
+    - scaler.com
+    - interviewbit.com
+    - geeksforgeeks.org
+    - hackerrank.com
+    - hackerearth.com
+    - leetcode.com
+    - codingninjas.com
+    - guvi.in
+    - whitehatjr.com
+    - byju.com
+    - byjus.com
+    - vedantu.com
+    - unacademy.com
+    - toppr.com
+    - meritnation.com
+    - doubtnut.com
+    - physicswallah.com
+    - pwonlycbse.com
+    - testbook.com
+    - oliveboard.com
+    - adda247.com
+    - gradeup.co
+    - classplus.co
+    - learnyst.com
+    - graphy.com
+    - teachable.com
+    - thinkific.com
+    # Top Global Universities
+    - mit.edu
+    - stanford.edu
+    - harvard.edu
+    - yale.edu
+    - columbia.edu
+    - princeton.edu
+    - caltech.edu
+    - berkeley.edu
+    - ox.ac.uk
+    - cam.ac.uk
+    - imperial.ac.uk
+    - ucl.ac.uk
+    - nus.edu.sg
+    - ntu.edu.sg
+    - ethz.ch
+    - epfl.ch
+    - tum.de
+    - lmu.de
+    - mcgill.ca
+    - utoronto.ca
+    - ubc.ca
+    - anu.edu.au
+    - unimelb.edu.au
+    - unsw.edu.au
+    # Top Indian Universities
+    - iitb.ac.in
+    - iitd.ac.in
+    - iitk.ac.in
+    - iitm.ac.in
+    - iitkgp.ac.in
+    - iitr.ac.in
+    - iitg.ac.in
+    - iith.ac.in
+    - iiti.ac.in
+    - iitbbs.ac.in
+    - iitgn.ac.in
+    - iitmandi.ac.in
+    - iitpkd.ac.in
+    - iitjammu.ac.in
+    - iitdh.ac.in
+    - iisc.ac.in
+    - iimb.ac.in
+    - iima.ac.in
+    - iimc.ac.in
+    - iiml.ac.in
+    - iimk.ac.in
+    - iimi.ac.in
+    - iimr.ac.in
+    - iims.ac.in
+    - iimu.ac.in
+    - iimraipur.ac.in
+    - nit.ac.in
+    - nitk.ac.in
+    - nitt.edu
+    - nitw.ac.in
+    - bits-pilani.ac.in
+    - pilani.bits-pilani.ac.in
+    - goa.bits-pilani.ac.in
+    - hyd.bits-pilani.ac.in
+    - du.ac.in
+    - mu.ac.in
+    - pu.ac.in
+    - sppu.ac.in
+    - vtu.ac.in
+    - mgkvp.ac.in
+    - bhu.ac.in
+    - jnu.ac.in
+    - hyderabad.ac.in
+    - jadavpur.edu
+    - dtu.ac.in
+    - nsit.ac.in
+    - bvpce.ac.in
+    - amity.edu
+    - manipal.edu
+    - vit.ac.in
+    - srm.edu.in
+    - christuniversity.in
+    - symbiosis.ac.in
+    - prestige.edu.in
+    # International K-12 / Test Prep
+    - collegeboard.org
+    - act.org
+    - ets.org
+    - gmat.com
+    - mba.com
+    - ielts.org
+    - britishcouncil.org
+    - toeflfamily.com
+    - duolingo.com
+    - babbel.com
+    - rosettastone.com
+    # Government Education Portals
+    - nta.ac.in
+    - jee.nta.ac.in
+    - neet.nta.ac.in
+    - ugcnet.nta.ac.in
+    - cmat.nta.ac.in
+    - mba-cmat.nta.ac.in
+    - cbse.nic.in
+    - cbse.gov.in
+    - icse.edu.in
+    - aicte-india.org
+    - ugc.ac.in
+    - mhrd.gov.in
+    - education.gov.in
+    - nios.ac.in
+    - ignou.ac.in
+
+# ---------------------------------------------------------------------------
+# WORK rules
+# ---------------------------------------------------------------------------
+work:
+  subject_keywords:
+    - "meeting invite"
+    - "calendar invite"
+    - "project update"
+    - "action required"
+    - "follow up"
+    - "task assigned"
+    - "sprint review"
+    - "stand-up"
+    - "weekly sync"
+    - "quarterly review"
+    - "performance review"
+    - "pull request"
+    - "code review"
+    - "deployment"
+    - "release notes"
+    - "team meeting"
+    - "client call"
+    - "proposal"
+    - "contract"
+    - "agreement"
+    - "onboarding"
+    - "offer letter"
+    - "salary slip"
+    - "payslip"
+    - "form 16"
+    - "work from home"
+    - "wfh policy"
+    - "leave request"
+    - "leave approved"
+    - "leave rejected"
+    - "timesheet"
+    - "attendance"
+    - "job offer"
+    - "interview scheduled"
+    - "technical interview"
+    - "hr round"
+    - "joining date"
+    - "resignation accepted"
+    - "relieving letter"
+    - "experience letter"
+    - "background check"
+    - "pan verification"
+    - "kyc verification"
+    - "reference check"
+    - "quarterly target"
+    - "kra review"
+    - "appraisal"
+    - "promotion"
+    - "increment letter"
+    - "bonus"
+    - "ticket raised"
+    - "incident report"
+    - "jira ticket"
+    - "confluence"
+    - "service desk"
+    - "helpdesk"
+    - "support ticket"
+    - "bug report"
+    - "production issue"
+    - "escalation"
+    - "postmortem"
+    - "sla breach"
+    - "uptime alert"
+    - "server down"
+    - "system alert"
+    - "deployment failed"
+    - "ci/cd"
+    - "build failed"
+    - "pipeline failed"
+    - "merge request"
+    - "code pushed"
+    - "invoice from"
+    - "purchase order"
+    - "vendor invoice"
+    - "gst invoice"
+  # Common work-related SaaS / communication tool domains
+  work_domains:
+    - jira.atlassian.com
+    - confluence.atlassian.com
+    - atlassian.com
+    - bitbucket.org
+    - github.com
+    - gitlab.com
+    - slack.com
+    - teams.microsoft.com
+    - meet.google.com
+    - calendar.google.com
+    - zoom.us
+    - webex.com
+    - gotomeeting.com
+    - bluejeans.com
+    - whereby.com
+    - notion.so
+    - airtable.com
+    - asana.com
+    - trello.com
+    - monday.com
+    - basecamp.com
+    - clickup.com
+    - linear.app
+    - figma.com
+    - miro.com
+    - lucidchart.com
+    - invision.com
+    - zeplin.io
+    - adobe.com
+    - salesforce.com
+    - hubspot.com
+    - freshdesk.com
+    - zendesk.com
+    - intercom.com
+    - drift.com
+    - marketo.com
+    - greenhouse.com
+    - lever.co
+    - workday.com
+    - bamboohr.com
+    - darwinbox.com
+    - keka.com
+    - greythr.com
+    - zoho.com
+    - quickbooks.intuit.com
+    - xero.com
+    - tally.com
+    - oracle.com
+    - sap.com
+    - servicenow.com
+    - pagerduty.com
+    - opsgenie.com
+    - datadog.com
+    - newrelic.com
+    - sumologic.com
+    - splunk.com
+    - grafana.com
+    - sentry.io
+    - rollbar.com
+    - cloudflare.com
+    - pingdom.com
+    - statuspage.io
+    - noreply.github.com
+    - notifications.github.com
+    - noreply.gitlab.com
+    - bitbucket.org
+    - circleci.com
+    - travis-ci.com
+    - jenkins.io
+    - aws.amazon.com
+    - console.aws.amazon.com
+    - azure.com
+    - portal.azure.com
+    - google.cloud
+    - cloud.google.com
+    - digitalocean.com
+    - heroku.com
+    - vercel.com
+    - netlify.com
+    - render.com
+    - railway.app
+
+# ---------------------------------------------------------------------------
+# Multi-label secondary pairing rules
+# ---------------------------------------------------------------------------
+secondary_label_pairs:
+  Banking:
+    - Security
+  Security:
+    - Banking
+  Orders:
+    - Security

@@ -43,20 +43,6 @@ from predict import predict as _predict  # noqa: E402
 
 logger.info("AI engine ready (model loaded via predict.py).")
 
-# ---------------------------------------------------------------------------
-# Label mapping: model output → Gmail label name
-# ---------------------------------------------------------------------------
-_LABEL_MAP: dict[str, str] = {
-    "ham": "AI Safe",
-    "spam": "AI Spam",
-}
-
-# Confidence below this threshold → classify as "AI Needs Review"
-# Note: LinearSVC always returns confidence=1.0 (no probability support),
-# so this threshold will only matter if the model is later replaced with
-# one that supports predict_proba (e.g., LogisticRegression).
-_CONFIDENCE_THRESHOLD: float = 0.6
-
 
 # ---------------------------------------------------------------------------
 # Public API
@@ -65,6 +51,10 @@ _CONFIDENCE_THRESHOLD: float = 0.6
 def classify(email_text: str) -> dict:
     """
     Classify a single email using the existing TF-IDF + LinearSVC model.
+
+    This is Layer 1 classification only. It returns the raw ML output
+    (label + confidence). The final Gmail label decision is made by
+    the Layer 2 rule engine in backend/classifier/rule_engine.py.
 
     Parameters
     ----------
@@ -76,45 +66,30 @@ def classify(email_text: str) -> dict:
     -------
     dict
         {
-            "label": "spam" | "ham" | "unknown",
-            "gmail_label": "AI Spam" | "AI Safe" | "AI Needs Review",
-            "confidence": float,   # 0.0 – 1.0
+            "label"      : "spam" | "ham" | "unknown",
+            "confidence" : float,   # 0.0 – 1.0
         }
     """
     if not email_text or not email_text.strip():
-        # Empty email → cannot classify confidently → flag for review
-        logger.debug("Empty email text received. Marking as 'AI Needs Review'.")
+        logger.debug("Empty email text received. Marking as unknown.")
         return {
-            "label": "ham",
-            "gmail_label": "AI Needs Review",
+            "label": "unknown",
             "confidence": 0.0,
         }
 
     try:
-        # Call the existing prediction function — unchanged
         result = _predict(email_text)
-
         label: str = result["label"]               # "spam" or "ham"
         confidence: float = result["confidence"]   # float 0.0 – 1.0
-
-        # Determine Gmail label
-        if confidence < _CONFIDENCE_THRESHOLD:
-            gmail_label = "AI Needs Review"
-        else:
-            gmail_label = _LABEL_MAP.get(label, "AI Needs Review")
-
         return {
             "label": label,
-            "gmail_label": gmail_label,
             "confidence": confidence,
         }
 
     except ValueError as e:
-        # predict() raises ValueError for empty / too-long text
         logger.warning("Prediction ValueError: %s", e)
         return {
             "label": "unknown",
-            "gmail_label": "AI Needs Review",
             "confidence": 0.0,
         }
 
@@ -122,6 +97,5 @@ def classify(email_text: str) -> dict:
         logger.error("Unexpected error during classification: %s", e)
         return {
             "label": "unknown",
-            "gmail_label": "AI Needs Review",
             "confidence": 0.0,
         }

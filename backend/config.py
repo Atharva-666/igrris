@@ -35,10 +35,18 @@ SCOPES: list[str] = [
 ]
 
 # ---------------------------------------------------------------------------
-# File paths (relative to project root)
+# File & Log paths (relative to project root)
 # ---------------------------------------------------------------------------
 TOKEN_FILE: str = os.path.join(_ROOT, "token.json")
 OAUTH_STATE_FILE: str = os.path.join(_ROOT, ".oauth_state")
+LOG_DIR: str = os.path.join(_ROOT, "logs")
+LOG_FILE: str = os.path.join(LOG_DIR, "mailshield.log")
+
+# Path to the rule engine YAML config
+RULES_CONFIG_FILE: str = os.path.join(_ROOT, "backend", "classifier", "rules_config.yaml")
+
+# ML confidence threshold — below this → 'Needs Review'
+CONFIDENCE_THRESHOLD: float = 0.70
 
 # ---------------------------------------------------------------------------
 # Gmail API settings
@@ -51,23 +59,25 @@ MAX_RESULTS_PER_PAGE: int = 500
 API_CALL_DELAY: float = 0.05
 
 # ---------------------------------------------------------------------------
-# AI label definitions
+# Label definitions (11 labels — clean, no product branding)
 # Gmail supports a fixed palette; these hex values are within that palette.
 # ---------------------------------------------------------------------------
-AI_LABELS: dict[str, dict] = {
-    "AI Safe": {
-        "textColor": "#FFFFFF",
-        "backgroundColor": "#16a765",  # green
-    },
-    "AI Spam": {
-        "textColor": "#FFFFFF",
-        "backgroundColor": "#cc3a21",  # red
-    },
-    "AI Needs Review": {
-        "textColor": "#000000",
-        "backgroundColor": "#f2c960",  # amber
-    },
+LABELS: dict[str, dict] = {
+    "Trusted":      {"textColor": "#ffffff", "backgroundColor": "#16a765"},  # green
+    "Spam":         {"textColor": "#ffffff", "backgroundColor": "#cc3a21"},  # red
+    "Needs Review": {"textColor": "#000000", "backgroundColor": "#f2c960"},  # amber
+    "Phishing":     {"textColor": "#ffffff", "backgroundColor": "#a61c00"},  # dark red
+    "Security":     {"textColor": "#ffffff", "backgroundColor": "#4a86e8"},  # blue
+    "Banking":      {"textColor": "#ffffff", "backgroundColor": "#0d7377"},  # teal
+    "Orders":       {"textColor": "#ffffff", "backgroundColor": "#8e63ce"},  # purple
+    "Promotions":   {"textColor": "#ffffff", "backgroundColor": "#e07c24"},  # orange
+    "Education":    {"textColor": "#ffffff", "backgroundColor": "#07b6d5"},  # cyan
+    "Work":         {"textColor": "#ffffff", "backgroundColor": "#2c5f8a"},  # navy
+    "Personal":     {"textColor": "#ffffff", "backgroundColor": "#5f6368"},  # gray
 }
+
+# Keep AI_LABELS as alias for backward compatibility with tests
+AI_LABELS = LABELS
 
 # ---------------------------------------------------------------------------
 # SECURITY NOTE (local development only)

@@ -18,10 +18,12 @@ App states:
   SCANNING           → show live progress bar
 """
 
+import html
 import logging
 import os
 import sys
 
+# pyrefly: ignore [missing-import]
 import streamlit as st
 
 # ---------------------------------------------------------------------------
@@ -55,8 +57,9 @@ from backend.auth.oauth import (
 )
 from backend.gmail.connector import get_gmail_service
 from backend.services.scan_service import run_scan
+from backend.utils.logger import get_recent_logs, setup_logging
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s — %(message)s")
+setup_logging()
 logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
@@ -833,19 +836,26 @@ if st.session_state.credentials is None:
 # ---------------------------------------------------------------------------
 if st.session_state.scan_results:
     results = st.session_state.scan_results
-    total   = len(results)
-    safe    = sum(1 for r in results if r["gmail_label"] == "AI Safe")
-    spam    = sum(1 for r in results if r["gmail_label"] == "AI Spam")
-    review  = sum(1 for r in results if r["gmail_label"] == "AI Needs Review")
-    errors  = sum(1 for r in results if r["status"] == "error")
+    total    = len(results)
+    trusted  = sum(1 for r in results if r.get("primary_label") == "Trusted")
+    spam     = sum(1 for r in results if r.get("primary_label") == "Spam")
+    phishing = sum(1 for r in results if r.get("primary_label") == "Phishing")
+    review   = sum(1 for r in results if r.get("primary_label") == "Needs Review")
+    security = sum(1 for r in results if r.get("primary_label") == "Security")
+    banking  = sum(1 for r in results if r.get("primary_label") == "Banking")
+    orders   = sum(1 for r in results if r.get("primary_label") == "Orders")
+    errors   = sum(1 for r in results if r.get("status") == "error")
 
-    s1, s2, s3, s4, s5 = st.columns(5)
+    s1, s2, s3, s4, s5, s6, s7, s8 = st.columns(8)
     stat_data = [
-        (s1, total,  "TOTAL SCANNED", "#60a5fa", "#60a5fa"),
-        (s2, safe,   "◈ SAFE",        "#34d399", "#34d399"),
-        (s3, spam,   "◆ SPAM",        "#f87171", "#f87171"),
-        (s4, review, "◇ REVIEW",      "#fbbf24", "#fbbf24"),
-        (s5, errors, "⚠ ERRORS",       "#94a3b8", "#94a3b8"),
+        (s1, total,    "TOTAL",    "#60a5fa", "#60a5fa"),
+        (s2, trusted,  "TRUSTED",  "#34d399", "#34d399"),
+        (s3, spam,     "SPAM",     "#f87171", "#f87171"),
+        (s4, phishing, "PHISHING", "#ef4444", "#ef4444"),
+        (s5, review,   "REVIEW",   "#fbbf24", "#fbbf24"),
+        (s6, security, "SECURITY", "#818cf8", "#818cf8"),
+        (s7, orders,   "ORDERS",   "#c084fc", "#c084fc"),
+        (s8, errors,   "ERRORS",   "#94a3b8", "#94a3b8"),
     ]
     for col, num, label, color, accent in stat_data:
         col.markdown(f"""
@@ -860,16 +870,28 @@ if st.session_state.scan_results:
 # ---------------------------------------------------------------------------
 # Scan button row
 # ---------------------------------------------------------------------------
+def stop_scan():
+    st.session_state.scanning = False
+
 col_btn, col_desc = st.columns([1, 3])
 
 with col_btn:
-    scan_clicked = st.button(
-        "◈  SCAN INBOX",
-        key="btn_scan",
-        use_container_width=True,
-        disabled=st.session_state.scanning,
-        type="primary",
-    )
+    if st.session_state.scanning:
+        st.button(
+            "🛑 STOP SCAN",
+            key="btn_stop",
+            use_container_width=True,
+            type="primary",
+            on_click=stop_scan,
+        )
+        scan_clicked = False
+    else:
+        scan_clicked = st.button(
+            "◈  SCAN INBOX",
+            key="btn_scan",
+            use_container_width=True,
+            type="primary",
+        )
 
 with col_desc:
     if st.session_state.scan_results:
@@ -892,10 +914,12 @@ with col_desc:
 if scan_clicked:
     st.session_state.scanning = True
     st.session_state.scan_results = []
+    st.rerun()
 
+if st.session_state.scanning:
     progress_bar = st.progress(0, text="INITIALIZING SCAN SEQUENCE…")
     status_placeholder = st.empty()
-    results_so_far: list[dict] = []
+    logs_placeholder = st.empty()
 
     try:
         service = _get_service()
@@ -914,18 +938,30 @@ if scan_clicked:
                 )
 
         def on_progress(current: int, total: int) -> None:
-            pct = current / max(total, 1)
-            progress_bar.progress(
-                pct,
-                text=f"SCANNING [{current}/{total}] · {int(pct*100)}% COMPLETE",
-            )
+            if current == 0:
+                # During initialization, 'total' is the number of emails fetched so far
+                progress_bar.progress(
+                    0.0,
+                    text=f"INITIALIZING SCAN SEQUENCE… COLLECTED {total} EMAILS SO FAR",
+                )
+            else:
+                pct = current / max(total, 1)
+                progress_bar.progress(
+                    pct,
+                    text=f"SCANNING [{current}/{total}] · {int(pct*100)}% COMPLETE",
+                )
+            
+            logs_content = get_recent_logs(max_lines=20)
+            logs_placeholder.code(logs_content, language="text")
 
         for result in run_scan(service, on_start=on_start, on_progress=on_progress):
-            results_so_far.append(result)
+            if not st.session_state.scanning:
+                break
+            st.session_state.scan_results.append(result)
 
-        st.session_state.scan_results = results_so_far
-        progress_bar.progress(1.0, text="◈ SCAN COMPLETE · ALL THREATS CLASSIFIED")
-        status_placeholder.empty()
+        if st.session_state.scanning:
+            progress_bar.progress(1.0, text="◈ SCAN COMPLETE · ALL THREATS CLASSIFIED")
+            status_placeholder.empty()
 
     except Exception as e:
         st.error(f"SCAN FAILED: {e}")
@@ -933,8 +969,7 @@ if scan_clicked:
 
     finally:
         st.session_state.scanning = False
-
-    st.rerun()
+        st.rerun()
 
 # ---------------------------------------------------------------------------
 # Results table
@@ -948,16 +983,35 @@ if st.session_state.scan_results:
     </div>
     """, unsafe_allow_html=True)
 
-    def _badge(gmail_label: str, status: str) -> str:
+    # ---------------------------------------------------------------------------
+    # Label badge colors (matching LABELS config)
+    # ---------------------------------------------------------------------------
+    _LABEL_STYLES: dict[str, tuple[str, str]] = {
+        "Trusted":      ("#16a765", "✓"),
+        "Spam":         ("#cc3a21", "✗"),
+        "Needs Review": ("#e0a800", "?"),
+        "Phishing":     ("#a61c00", "⚠"),
+        "Security":     ("#4a86e8", "🔒"),
+        "Banking":      ("#0d7377", "🏦"),
+        "Orders":       ("#8e63ce", "📦"),
+        "Promotions":   ("#e07c24", "🏷"),
+        "Education":    ("#07b6d5", "📚"),
+        "Work":         ("#2c5f8a", "💼"),
+        "Personal":     ("#5f6368", "👤"),
+    }
+
+    def _badge(primary: str, secondary: str | None, status: str) -> str:
         if status == "error":
-            return '<span class="badge badge-error">⚠ ERROR</span>'
-        classes = {
-            "AI Safe":         ("badge-safe",   "◈ SAFE"),
-            "AI Spam":         ("badge-spam",   "◆ SPAM"),
-            "AI Needs Review": ("badge-review", "◇ REVIEW"),
-        }
-        css, text = classes.get(gmail_label, ("badge-error", "UNKNOWN"))
-        return f'<span class="badge {css}">{text}</span>'
+            return '<span style="background:#374151;color:#9ca3af;padding:2px 8px;border-radius:4px;font-size:0.72rem;font-weight:700;">⚠ ERROR</span>'
+        
+        def _single(label: str) -> str:
+            color, icon = _LABEL_STYLES.get(label, ("#666", "•"))
+            return f'<span style="background:{color};color:#fff;padding:2px 8px;border-radius:4px;font-size:0.72rem;font-weight:700;margin-right:3px;">{icon} {label.upper()}</span>'
+        
+        result = _single(primary)
+        if secondary:
+            result += _single(secondary)
+        return result
 
     def _conf(confidence: float) -> str:
         pct = int(confidence * 100)
@@ -975,36 +1029,36 @@ if st.session_state.scan_results:
 
     rows_html = ""
     for r in st.session_state.scan_results:
-        sender  = r.get("sender",  "")[:50]
-        subject = r.get("subject", "")[:60]
-        label   = r.get("gmail_label", "")
-        status  = r.get("status", "")
-        conf    = r.get("confidence", 0.0)
+        sender    = html.escape(r.get("sender",  "")[:50])
+        subject   = html.escape(r.get("subject", "")[:60])
+        primary   = r.get("primary_label", r.get("gmail_label", "Unknown"))
+        secondary = r.get("secondary_label", None)
+        status    = r.get("status", "")
+        conf      = r.get("confidence", 0.0)
+        layer     = html.escape(r.get("layer", ""))
 
-        rows_html += f"""
-        <tr>
-          <td><span class="truncate" title="{sender}">{sender}</span></td>
-          <td><span class="truncate" title="{subject}">{subject}</span></td>
-          <td>{_badge(label, status)}</td>
-          <td>{_conf(conf)}</td>
-        </tr>
-        """
+        rows_html += f"""<tr>
+  <td><span class="truncate" title="{sender}">{sender}</span></td>
+  <td><span class="truncate" title="{subject}">{subject}</span></td>
+  <td>{_badge(primary, secondary, status)}</td>
+  <td>{_conf(conf)}</td>
+  <td style="font-family:'Share Tech Mono',monospace;font-size:0.68rem;color:#7c3aed;">{layer}</td>
+</tr>"""
 
-    table_html = f"""
-    <table class="results-table">
-      <thead>
-        <tr>
-          <th>◈ SENDER</th>
-          <th>◈ SUBJECT</th>
-          <th>◈ AI VERDICT</th>
-          <th>◈ CONFIDENCE</th>
-        </tr>
-      </thead>
-      <tbody>
-        {rows_html}
-      </tbody>
-    </table>
-    """
+    table_html = f"""<table class="results-table">
+  <thead>
+    <tr>
+      <th>◈ SENDER</th>
+      <th>◈ SUBJECT</th>
+      <th>◈ LABEL</th>
+      <th>◈ CONFIDENCE</th>
+      <th>◈ LAYER</th>
+    </tr>
+  </thead>
+  <tbody>
+    {rows_html}
+  </tbody>
+</table>"""
     st.markdown(table_html, unsafe_allow_html=True)
 
 elif not st.session_state.scanning:
@@ -1023,3 +1077,32 @@ elif not st.session_state.scanning:
         </div>
     </div>
     """, unsafe_allow_html=True)
+
+# ---------------------------------------------------------------------------
+# System Log Terminal (Expandable)
+# ---------------------------------------------------------------------------
+st.markdown('<div class="neon-divider"></div>', unsafe_allow_html=True)
+
+with st.expander("📟 SYSTEM LOGS & AUDIT TRAIL (`logs/mailshield.log`)", expanded=False):
+    logs_content = get_recent_logs(max_lines=150)
+    
+    st.markdown("""
+    <div style="font-family:'Share Tech Mono',monospace; font-size:0.75rem; color:#06b6d4; margin-bottom:0.5rem;">
+        // REAL-TIME PROCESS LOGS & SYSTEM EVENT AUDIT
+    </div>
+    """, unsafe_allow_html=True)
+    
+    st.code(logs_content, language="text")
+    
+    col_ref, col_dl, _ = st.columns([1, 1.5, 4])
+    with col_ref:
+        if st.button("🔄 REFRESH LOGS", key="btn_refresh_logs"):
+            st.rerun()
+    with col_dl:
+        st.download_button(
+            label="💾 DOWNLOAD MAILSHIELD.LOG",
+            data=logs_content,
+            file_name="mailshield.log",
+            mime="text/plain",
+            key="btn_download_logs",
+        )

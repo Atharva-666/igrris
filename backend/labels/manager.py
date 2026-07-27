@@ -3,25 +3,20 @@ manager.py — Gmail Label Manager for MailShield AI.
 
 Responsibilities:
   - List all existing labels in the Gmail account
-  - Create AI labels if they do not exist (idempotent — never duplicates)
-  - Apply the correct AI label to a message
-  - Remove outdated AI labels if the prediction changes on rescan
+  - Create labels if they do not exist (idempotent — never duplicates)
+  - Apply the correct label(s) to a message (primary + optional secondary)
+  - Remove outdated managed labels if the prediction changes on rescan
 
-Managed labels:
-  "AI Safe"         — green  — email predicted as ham with high confidence
-  "AI Spam"         — red    — email predicted as spam with high confidence
-  "AI Needs Review" — amber  — low confidence or empty content
-
-Gmail label color note:
-  Gmail accepts only a fixed palette of hex colors. The values used here
-  are confirmed valid by the Gmail API documentation.
+Managed labels (11 total, no product branding):
+  Trusted, Spam, Needs Review, Phishing, Security,
+  Banking, Orders, Promotions, Education, Work, Personal
 """
 
 import logging
 
 from googleapiclient.errors import HttpError
 
-from backend.config import AI_LABELS
+from backend.config import LABELS
 
 logger = logging.getLogger(__name__)
 
@@ -30,28 +25,44 @@ logger = logging.getLogger(__name__)
 # Public API
 # ---------------------------------------------------------------------------
 
+# Gmail system labels that conflict with our desired label names.
+# Instead of creating a custom label, we re-use the system label ID.
+_SYSTEM_LABEL_ALIASES: dict[str, str] = {
+    "Spam": "SPAM",
+}
+
+
 def ensure_labels_exist(service) -> dict[str, str]:
     """
-    Ensure all three AI labels exist in the Gmail account.
+    Ensure all managed labels exist in the Gmail account.
 
     Creates any missing labels with the correct colors.
     Reuses existing labels if they already exist.
     Safe to call on every scan — never creates duplicates.
 
-    Parameters
-    ----------
-    service : Gmail API service object
+    Note: 'Spam' is mapped to Gmail's built-in SPAM system label (id='SPAM')
+    instead of creating a conflicting custom label.
 
     Returns
     -------
     dict[str, str]
-        Mapping of {label_name: label_id} for all AI labels.
+        Mapping of {label_name: label_id} for all managed labels.
         Returns empty dict if the labels API call fails.
     """
     existing = _list_all_labels(service)
     label_ids: dict[str, str] = {}
 
-    for label_name in AI_LABELS:
+    for label_name in LABELS:
+        # Check if this label has a system alias (e.g. Spam -> SPAM)
+        system_alias = _SYSTEM_LABEL_ALIASES.get(label_name)
+        if system_alias and system_alias in existing:
+            label_ids[label_name] = existing[system_alias]
+            logger.debug(
+                "Label '%s' mapped to Gmail system label '%s' (id=%s).",
+                label_name, system_alias, existing[system_alias],
+            )
+            continue
+
         if label_name in existing:
             label_ids[label_name] = existing[label_name]
             logger.debug("Label '%s' already exists (id=%s).", label_name, existing[label_name])
@@ -66,45 +77,49 @@ def ensure_labels_exist(service) -> dict[str, str]:
 def apply_label(
     service,
     msg_id: str,
-    target_label_id: str,
+    primary_label_id: str,
     existing_label_ids: list[str],
-    all_ai_label_ids: list[str],
+    all_managed_label_ids: list[str],
+    secondary_label_id: str | None = None,
 ) -> bool:
     """
-    Apply the target AI label to a message, removing any other AI labels first.
-
-    This ensures each message has exactly one AI label at any time.
-    Does nothing if the correct label is already applied (avoids unnecessary API calls).
+    Apply the primary label (and optional secondary label) to a message,
+    removing any other managed labels first.
 
     Parameters
     ----------
     service : Gmail API service object
     msg_id : str
-        Gmail message ID.
-    target_label_id : str
-        ID of the label to apply.
+    primary_label_id : str
+        ID of the primary label to apply.
     existing_label_ids : list[str]
-        Label IDs currently on the message (from messages.get response).
-    all_ai_label_ids : list[str]
-        IDs of all three AI-managed labels (to detect old AI labels to remove).
+        Label IDs currently on the message.
+    all_managed_label_ids : list[str]
+        IDs of all managed labels (to detect stale labels to remove).
+    secondary_label_id : str | None
+        Optional secondary label ID to also apply.
 
     Returns
     -------
     bool
         True if the operation succeeded, False otherwise.
     """
-    # Determine which AI labels need to be removed (any AI label that is NOT the target)
+    new_ids = [primary_label_id]
+    if secondary_label_id:
+        new_ids.append(secondary_label_id)
+
+    # Remove any managed labels that are NOT in the new set
     labels_to_remove = [
         lid for lid in existing_label_ids
-        if lid in all_ai_label_ids and lid != target_label_id
+        if lid in all_managed_label_ids and lid not in new_ids
     ]
 
-    # Only add the label if it is not already present
-    labels_to_add = [] if target_label_id in existing_label_ids else [target_label_id]
+    # Only add labels that aren't already present
+    labels_to_add = [lid for lid in new_ids if lid not in existing_label_ids]
 
     # Nothing to do
     if not labels_to_add and not labels_to_remove:
-        logger.debug("Message %s already has the correct label. Skipping API call.", msg_id)
+        logger.debug("Message %s already has the correct label(s). Skipping API call.", msg_id)
         return True
 
     try:
@@ -116,7 +131,7 @@ def apply_label(
                 "removeLabelIds": labels_to_remove,
             },
         ).execute()
-        logger.debug("Applied label to message %s.", msg_id)
+        logger.debug("Applied label(s) to message %s.", msg_id)
         return True
 
     except HttpError as e:
@@ -152,20 +167,20 @@ def _create_label(service, label_name: str) -> str | None:
     Parameters
     ----------
     label_name : str
-        One of the keys in AI_LABELS config.
+        One of the keys in LABELS config.
 
     Returns
     -------
     str | None
         The new label's ID, or None if creation failed.
     """
-    color = AI_LABELS.get(label_name, {})
+    color = LABELS.get(label_name, {})
     label_body = {
         "name": label_name,
-        "labelListVisibility": "labelShow",       # show in label list
-        "messageListVisibility": "show",           # show in message list
+        "labelListVisibility": "labelShow",
+        "messageListVisibility": "show",
         "color": {
-            "textColor": color.get("textColor", "#FFFFFF"),
+            "textColor": color.get("textColor", "#ffffff"),
             "backgroundColor": color.get("backgroundColor", "#666666"),
         },
     }
@@ -179,5 +194,19 @@ def _create_label(service, label_name: str) -> str | None:
         return result["id"]
 
     except HttpError as e:
-        logger.error("Failed to create label '%s': %s", label_name, e)
-        return None
+        logger.warning("Failed to create label '%s' with color: %s. Retrying without color...", label_name, e)
+        try:
+            plain_body = {
+                "name": label_name,
+                "labelListVisibility": "labelShow",
+                "messageListVisibility": "show",
+            }
+            result = service.users().labels().create(
+                userId="me",
+                body=plain_body,
+            ).execute()
+            logger.info("Created Gmail label '%s' without color (id=%s).", label_name, result["id"])
+            return result["id"]
+        except HttpError as e2:
+            logger.error("Failed to create label '%s': %s", label_name, e2)
+            return None
