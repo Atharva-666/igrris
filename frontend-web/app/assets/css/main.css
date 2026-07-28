@@ -1,0 +1,85 @@
+/* assets/css/main.css — global styles for MailShield AI Nuxt frontend */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Base resets ─────────────────────────────────────────────── */
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply bg-surface-950 text-surface-100 font-sans;
+    min-height: 100vh;
+  }
+
+  /* Scrollbar styling */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-surface-900;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-surface-700 rounded-full;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-surface-600;
+  }
+}
+
+/* ── Reusable component classes ─────────────────────────────── */
+@layer components {
+  /* Card */
+  .card {
+    @apply bg-surface-900 border border-surface-800 rounded-xl p-6;
+  }
+
+  /* Small secondary text */
+  .text-muted {
+    @apply text-surface-400 text-sm;
+  }
+
+  /* Primary button */
+  .btn-primary {
+    @apply inline-flex items-center gap-2 bg-white text-black text-sm font-medium
+           px-4 py-2 rounded-lg hover:bg-surface-100 transition-colors duration-150
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  /* Ghost button */
+  .btn-ghost {
+    @apply inline-flex items-center gap-2 text-surface-300 text-sm font-medium
+           px-4 py-2 rounded-lg hover:bg-surface-800 hover:text-surface-100
+           transition-colors duration-150;
+  }
+
+  /* Danger button */
+  .btn-danger {
+    @apply inline-flex items-center gap-2 text-red-400 text-sm font-medium
+           px-4 py-2 rounded-lg hover:bg-red-950 hover:text-red-300
+           transition-colors duration-150;
+  }
+
+  /* Input */
+  .input {
+    @apply w-full bg-surface-900 border border-surface-800 text-surface-100
+           placeholder-surface-500 rounded-lg px-3 py-2 text-sm
+           focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent
+           transition duration-150;
+  }
+
+  /* Divider */
+  .divider {
+    @apply border-t border-surface-800 my-6;
+  }
+}
