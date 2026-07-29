@@ -24,7 +24,7 @@ from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
-from backend.config import MAX_RESULTS_PER_PAGE
+from backend.config import MAX_RESULTS_PER_PAGE, MAX_PAGES_TO_FETCH
 
 logger = logging.getLogger(__name__)
 
@@ -95,6 +95,10 @@ def fetch_all_message_ids(service, query: str = "") -> Generator[str, None, None
         page_token = response.get("nextPageToken")
         if not page_token:
             logger.info("All pages fetched. Total pages: %d", page_num)
+            break
+
+        if page_num >= MAX_PAGES_TO_FETCH:
+            logger.info("Reached maximum pages limit (%d). Stopping fetch to save API quota.", MAX_PAGES_TO_FETCH)
             break
 
 

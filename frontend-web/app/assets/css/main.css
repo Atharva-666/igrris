@@ -41,7 +41,7 @@
 @layer components {
   /* Card */
   .card {
-    @apply bg-surface-900 border border-surface-800 rounded-xl p-6;
+    @apply bg-surface-900/60 backdrop-blur-md border border-surface-800 rounded-xl p-6;
   }
 
   /* Small secondary text */

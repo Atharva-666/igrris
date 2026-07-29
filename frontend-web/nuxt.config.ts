@@ -12,11 +12,18 @@ export default defineNuxtConfig({
   // Global CSS
   css: ['~/assets/css/main.css'],
 
-  // Tailwind CSS via @nuxtjs/tailwindcss module
-  modules: ['@nuxtjs/tailwindcss'],
+  // Modules
+  modules: [
+    '@nuxtjs/tailwindcss',
+    '@vueuse/motion/nuxt'
+  ],
 
   // Dark mode default — handled by Tailwind 'class' strategy in tailwind.config
   app: {
+    pageTransition: {
+      name: 'page',
+      mode: 'out-in'
+    },
     head: {
       title: 'MailShield AI',
       meta: [

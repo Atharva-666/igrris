@@ -54,6 +54,9 @@ CONFIDENCE_THRESHOLD: float = 0.70
 # Maximum messages per API page (Gmail API maximum is 500)
 MAX_RESULTS_PER_PAGE: int = 500
 
+# Maximum number of pages to fetch per scan to avoid hitting rate limits (e.g. 2 pages = 1000 emails)
+MAX_PAGES_TO_FETCH: int = 2
+
 # Seconds to sleep between messages.modify calls to respect Gmail rate limits.
 # Gmail free tier allows ~10,000 quota units/day. messages.get = 5 units each.
 API_CALL_DELAY: float = 0.05
@@ -63,17 +66,17 @@ API_CALL_DELAY: float = 0.05
 # Gmail supports a fixed palette; these hex values are within that palette.
 # ---------------------------------------------------------------------------
 LABELS: dict[str, dict] = {
-    "Trusted":      {"textColor": "#ffffff", "backgroundColor": "#16a765"},  # green
+    "Trusted":      {"textColor": "#ffffff", "backgroundColor": "#16a766"},  # green
     "Spam":         {"textColor": "#ffffff", "backgroundColor": "#cc3a21"},  # red
-    "Needs Review": {"textColor": "#000000", "backgroundColor": "#f2c960"},  # amber
-    "Phishing":     {"textColor": "#ffffff", "backgroundColor": "#a61c00"},  # dark red
+    "Needs Review": {"textColor": "#434343", "backgroundColor": "#f2c960"},  # amber
+    "Phishing":     {"textColor": "#ffffff", "backgroundColor": "#ac2b16"},  # dark red
     "Security":     {"textColor": "#ffffff", "backgroundColor": "#4a86e8"},  # blue
-    "Banking":      {"textColor": "#ffffff", "backgroundColor": "#0d7377"},  # teal
+    "Banking":      {"textColor": "#ffffff", "backgroundColor": "#0b804b"},  # dark green
     "Orders":       {"textColor": "#ffffff", "backgroundColor": "#8e63ce"},  # purple
-    "Promotions":   {"textColor": "#ffffff", "backgroundColor": "#e07c24"},  # orange
-    "Education":    {"textColor": "#ffffff", "backgroundColor": "#07b6d5"},  # cyan
-    "Work":         {"textColor": "#ffffff", "backgroundColor": "#2c5f8a"},  # navy
-    "Personal":     {"textColor": "#ffffff", "backgroundColor": "#5f6368"},  # gray
+    "Promotions":   {"textColor": "#ffffff", "backgroundColor": "#eaa041"},  # orange
+    "Education":    {"textColor": "#ffffff", "backgroundColor": "#43d6b0"},  # cyan
+    "Work":         {"textColor": "#ffffff", "backgroundColor": "#285bac"},  # navy
+    "Personal":     {"textColor": "#ffffff", "backgroundColor": "#666666"},  # gray
 }
 
 # Keep AI_LABELS as alias for backward compatibility with tests

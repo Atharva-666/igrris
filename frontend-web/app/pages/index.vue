@@ -1,410 +1,201 @@
 <template>
-  <div class="min-h-screen flex flex-col">
-
-    <!-- ── Navbar ──────────────────────────────────────────────── -->
-    <header class="sticky top-0 z-20 border-b border-surface-800 bg-surface-950/80 backdrop-blur-sm">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between gap-4">
-        <!-- Brand -->
-        <div class="flex items-center gap-2.5 shrink-0">
-          <div class="w-7 h-7 rounded-lg bg-brand-600 flex items-center justify-center">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-            </svg>
-          </div>
-          <span class="text-sm font-semibold text-surface-100">MailShield AI</span>
+  <main class="relative text-surface-100 overflow-hidden">
+    <!-- Header -->
+    <header class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center shadow-[0_0_15px_rgba(var(--color-brand-600),0.5)]">
+          <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+          </svg>
         </div>
-
-        <!-- Actions -->
-        <div class="flex items-center gap-2">
-          <button
-            v-if="!scanning"
-            id="btn-scan"
-            class="btn-primary"
-            @click="startScan"
-          >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
-            </svg>
-            Scan Gmail
-          </button>
-          <button
-            v-else
-            id="btn-stop-scan"
-            class="btn-primary !bg-red-600 hover:!bg-red-700 !border-red-500 !text-white"
-            @click="handleStopScan"
-            :disabled="stopping"
-          >
-            <svg v-if="!stopping" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
-            </svg>
-            <svg v-else class="w-4 h-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
-            </svg>
-            {{ stopping ? 'Stopping…' : 'Stop Scan' }}
-          </button>
-          <button id="btn-logout" class="btn-ghost" @click="handleLogout">Sign out</button>
-        </div>
+        <span class="text-lg font-bold tracking-tight text-white">MailShield AI</span>
+      </div>
+      <div>
+        <InteractiveHoverButton
+          class="!bg-white/10 hover:!bg-white/20 border-white/10 !text-white shadow-none backdrop-blur-md"
+          @click="handleSignIn"
+          :disabled="loading"
+          :text="loading ? 'Connecting...' : 'Sign In'"
+        />
       </div>
     </header>
 
-    <!-- ── Main content ────────────────────────────────────────── -->
-    <main class="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
-
-      <!-- Error banner -->
-      <div v-if="scanError" class="mb-6 card border-red-900 bg-red-950/30 flex items-start gap-3 !p-4">
-        <svg class="w-5 h-5 text-red-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-        </svg>
-        <div>
-          <p class="text-sm font-medium text-red-300">Scan Error</p>
-          <p class="text-sm text-red-400 mt-0.5">{{ scanError }}</p>
-        </div>
-        <button class="ml-auto btn-ghost !p-1" @click="scanError = null">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
-          </svg>
-        </button>
+    <!-- Hero Section -->
+    <section class="relative z-10 pt-24 pb-32 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto flex flex-col items-center text-center">
+      <div 
+        v-motion :initial="fadeUp(0).initial" :enter="fadeUp(0).enter"
+        class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-brand-900/30 border border-brand-800/50 text-brand-300 text-sm font-medium mb-8"
+      >
+        <span class="relative flex h-2 w-2">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-400 opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-2 w-2 bg-brand-500"></span>
+        </span>
+        Machine Learning Powered Security
       </div>
-
-      <!-- Scanning Live Terminal State -->
-      <div v-if="scanning" class="mb-8 animate-fade-in">
-        <div class="card !p-8 flex flex-col gap-6 w-full max-w-3xl mx-auto">
-          <!-- Header -->
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-4">
-              <div class="relative">
-                <div class="w-10 h-10 rounded-full border-2 border-surface-800 border-t-brand-500 animate-spin" />
-              </div>
-              <div>
-                <p class="text-base font-medium text-surface-100">Scanning your inbox…</p>
-                <p class="text-muted text-sm mt-0.5">Fetching emails, running ML model, and applying labels.</p>
-              </div>
-            </div>
-            
-            <div class="text-right tabular-nums">
-              <p class="text-2xl font-semibold text-surface-100">
-                <span class="text-brand-400">{{ scanProgress.current }}</span>
-                <span class="text-surface-500 text-lg"> / {{ scanProgress.total || '?' }}</span>
-              </p>
-              <p class="text-muted text-xs uppercase tracking-wider mt-1">Processed</p>
-            </div>
-          </div>
-
-          <!-- Progress Bar -->
-          <div class="w-full h-2 bg-surface-800 rounded-full overflow-hidden">
-            <div 
-              class="h-full bg-brand-500 transition-all duration-300 ease-out"
-              :style="{ width: scanProgress.total > 0 ? `${(scanProgress.current / scanProgress.total) * 100}%` : '0%' }"
-            ></div>
-          </div>
-
-          <!-- Terminal -->
-          <div class="bg-black/80 border border-surface-800 rounded-lg p-4 font-mono text-xs overflow-y-auto h-64 shadow-inner" ref="terminalEl">
-            <div v-for="(log, idx) in scanLogs" :key="idx" class="text-surface-300 whitespace-pre-wrap leading-relaxed">
-              <span class="text-surface-500 select-none mr-2">❯</span>{{ log }}
-            </div>
-            <!-- Blinking cursor -->
-            <div class="text-surface-500 mt-1 animate-pulse">_</div>
-          </div>
-        </div>
+      
+      <h1 
+        v-motion :initial="fadeUp(150).initial" :enter="fadeUp(150).enter"
+        class="text-5xl md:text-7xl font-extrabold tracking-tight mb-6 text-transparent bg-clip-text bg-gradient-to-b from-white to-surface-400 max-w-4xl"
+      >
+        Intelligent threat detection for your inbox.
+      </h1>
+      
+      <p 
+        v-motion :initial="fadeUp(300).initial" :enter="fadeUp(300).enter"
+        class="text-lg md:text-xl text-surface-400 max-w-2xl mb-12 leading-relaxed"
+      >
+        MailShield AI scans your Gmail using an advanced LinearSVC machine learning model to automatically categorize emails, block phishing attempts, and keep your inbox secure.
+      </p>
+      
+      <div 
+        v-motion :initial="fadeUp(450).initial" :enter="fadeUp(450).enter"
+        class="flex flex-col sm:flex-row gap-4 items-center w-full justify-center max-w-md"
+      >
+        <ShimmerButton
+          class="w-full sm:w-auto shadow-2xl"
+          shimmer-color="rgba(255, 255, 255, 0.4)"
+          shimmer-size="2px"
+          border-radius="100px"
+          shimmer-duration="3s"
+          background="#000000"
+          @click="handleSignIn"
+          :disabled="loading"
+        >
+          <span class="flex items-center gap-2 text-white font-semibold text-lg whitespace-nowrap">
+            {{ loading ? 'Connecting...' : 'Secure Your Inbox' }}
+          </span>
+        </ShimmerButton>
       </div>
+      
+      <p v-if="error" class="mt-6 text-sm text-red-400 bg-red-950/50 border border-red-900/50 px-4 py-2 rounded-lg max-w-md mx-auto">
+        {{ error }}
+      </p>
+      <p class="mt-6 text-xs text-surface-500 max-w-sm">
+        We only request <span class="text-surface-300">gmail.modify</span> & <span class="text-surface-300">gmail.labels</span>. We never store your emails.
+      </p>
+    </section>
 
-      <!-- Empty state (not yet scanned) -->
-      <div v-else-if="!results.length && !scanError" class="animate-fade-in">
-        <div class="card !p-12 flex flex-col items-center gap-4 text-center max-w-lg mx-auto">
-          <div class="w-14 h-14 rounded-2xl bg-surface-800 flex items-center justify-center">
-            <svg class="w-7 h-7 text-surface-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+    <!-- Features Grid -->
+    <section class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-32">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        
+        <!-- Feature 1 -->
+        <div 
+          v-motion :initial="fadeUp(0).initial" :visible-once="fadeUp(0).enter"
+          class="bg-surface-900/50 backdrop-blur-md border border-surface-800 p-8 rounded-2xl hover:bg-surface-800/50 transition-colors duration-300 group"
+        >
+          <div class="w-12 h-12 rounded-xl bg-red-950/50 border border-red-900/50 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+            <svg class="w-6 h-6 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
           </div>
-          <div>
-            <p class="text-base font-medium text-surface-100">No emails scanned yet</p>
-            <p class="text-muted mt-1">Click <strong class="text-surface-300">Scan Gmail</strong> to analyse your inbox with the ML model.</p>
-          </div>
-          <button id="btn-scan-empty" class="btn-primary" @click="startScan">Scan Gmail</button>
-        </div>
-      </div>
-
-      <!-- Results -->
-      <template v-else-if="!scanning && results.length > 0">
-        <!-- Stats strip -->
-        <ScanStats
-          v-if="scanSummary"
-          :summary="scanSummary"
-          :active-filter="activeFilter"
-          class="mb-6 animate-slide-up"
-          @filter="(l) => (activeFilter = l)"
-        />
-
-        <!-- Controls row -->
-        <div class="flex flex-col sm:flex-row gap-3 mb-4">
-          <!-- Search -->
-          <div class="relative flex-1">
-            <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-surface-500 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35m0 0A7 7 0 104 10a7 7 0 0012.65 6.65z"/>
-            </svg>
-            <input
-              id="input-search"
-              v-model="searchQuery"
-              class="input pl-9"
-              placeholder="Search sender or subject…"
-              type="text"
-            />
-          </div>
-
-          <!-- Filter select -->
-          <select
-            id="select-filter"
-            v-model="activeFilter"
-            class="input sm:w-44"
-          >
-            <option value="">All labels</option>
-            <option v-for="l in LABEL_ORDER" :key="l" :value="l">{{ l }}</option>
-          </select>
-
-          <!-- Result count -->
-          <p class="text-muted self-center shrink-0 text-sm">
-            {{ filteredResults.length }} of {{ results.length }} emails
+          <h3 class="text-xl font-semibold text-white mb-3">Threat Mitigation</h3>
+          <p class="text-surface-400 leading-relaxed text-sm">
+            Instantly flags <span class="text-red-400 font-medium">Phishing</span> and <span class="text-amber-400 font-medium">Spam</span> attempts with deep textual analysis and TF-IDF vectorization.
           </p>
         </div>
 
-        <!-- Table -->
-        <div class="card !p-0 overflow-hidden animate-slide-up">
-          <table class="w-full text-sm">
-            <thead>
-              <tr class="border-b border-surface-800 text-left">
-                <th class="px-4 py-3 text-xs font-medium text-surface-500 uppercase tracking-wider w-64">Sender</th>
-                <th class="px-4 py-3 text-xs font-medium text-surface-500 uppercase tracking-wider">Subject</th>
-                <th class="px-4 py-3 text-xs font-medium text-surface-500 uppercase tracking-wider w-36 hidden sm:table-cell">Label</th>
-                <th class="px-4 py-3 text-xs font-medium text-surface-500 uppercase tracking-wider w-24 text-right hidden md:table-cell">Confidence</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr
-                v-for="email in paginatedResults"
-                :key="email.msg_id"
-                class="border-b border-surface-800 last:border-0 hover:bg-surface-800/50 cursor-pointer transition-colors"
-                @click="selectedEmail = email"
-              >
-                <td class="px-4 py-3 text-surface-300 truncate max-w-0 w-64">
-                  <p class="truncate font-medium text-surface-200">{{ email.sender }}</p>
-                </td>
-                <td class="px-4 py-3 text-surface-400 truncate">
-                  {{ email.subject || '(no subject)' }}
-                </td>
-                <td class="px-4 py-3 hidden sm:table-cell">
-                  <LabelBadge :label="email.primary_label" />
-                </td>
-                <td class="px-4 py-3 text-right text-surface-500 hidden md:table-cell tabular-nums">
-                  {{ email.confidence > 0 ? `${Math.round(email.confidence * 100)}%` : '—' }}
-                </td>
-              </tr>
-              <tr v-if="!filteredResults.length">
-                <td colspan="4" class="px-4 py-8 text-center text-muted">No emails match your filter.</td>
-              </tr>
-            </tbody>
-          </table>
-
-          <!-- Pagination -->
-          <div v-if="totalPages > 1" class="flex items-center justify-between px-4 py-3 border-t border-surface-800">
-            <button id="btn-prev-page" class="btn-ghost text-xs" :disabled="page === 1" @click="page--">← Previous</button>
-            <p class="text-muted text-xs">Page {{ page }} of {{ totalPages }}</p>
-            <button id="btn-next-page" class="btn-ghost text-xs" :disabled="page === totalPages" @click="page++">Next →</button>
+        <!-- Feature 2 -->
+        <div 
+          v-motion :initial="fadeUp(150).initial" :visible-once="fadeUp(150).enter"
+          class="bg-surface-900/50 backdrop-blur-md border border-surface-800 p-8 rounded-2xl hover:bg-surface-800/50 transition-colors duration-300 group"
+        >
+          <div class="w-12 h-12 rounded-xl bg-blue-950/50 border border-blue-900/50 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+            <svg class="w-6 h-6 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002 2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+            </svg>
           </div>
+          <h3 class="text-xl font-semibold text-white mb-3">Smart Categorization</h3>
+          <p class="text-surface-400 leading-relaxed text-sm">
+            Automatically sorts your inbox into 11 distinct labels including <span class="text-cyan-400 font-medium">Work</span>, <span class="text-teal-400 font-medium">Banking</span>, <span class="text-orange-400 font-medium">Promotions</span>, and <span class="text-purple-400 font-medium">Orders</span>.
+          </p>
         </div>
-      </template>
-    </main>
 
-    <!-- Email detail slide-over -->
-    <EmailDetails :email="selectedEmail" @close="selectedEmail = null" />
-  </div>
+        <!-- Feature 3 -->
+        <div 
+          v-motion :initial="fadeUp(300).initial" :visible-once="fadeUp(300).enter"
+          class="bg-surface-900/50 backdrop-blur-md border border-surface-800 p-8 rounded-2xl hover:bg-surface-800/50 transition-colors duration-300 group"
+        >
+          <div class="w-12 h-12 rounded-xl bg-brand-950/50 border border-brand-900/50 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+            <svg class="w-6 h-6 text-brand-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+          </div>
+          <h3 class="text-xl font-semibold text-white mb-3">Live Processing</h3>
+          <p class="text-surface-400 leading-relaxed text-sm">
+            Watch the ML model process your inbox in real-time. Server-Sent Events stream scan progress directly to a sleek terminal interface.
+          </p>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="relative z-10 border-t border-surface-800 py-8 text-center text-surface-500 text-sm">
+      <p>Powered by Vue 3, FastAPI, and LinearSVC.</p>
+    </footer>
+  </main>
 </template>
 
 <script setup lang="ts">
-import type { ScanResult } from '~/composables/useApi'
+import { useMotionPresets } from '~/composables/useMotionPresets'
 
-const { authenticated, checking, checkAuth, logout } = useAuth()
-const api = useApi()
+definePageMeta({ layout: false })
+
+const { login, checkAuth, authenticated } = useAuth()
+const { fadeUp } = useMotionPresets()
 const router = useRouter()
+const route = useRoute()
 
-// Auth gate
+const loading = ref(false)
+const error = ref<string | null>(null)
+
+// On mount — if already authenticated, go to dashboard
 onMounted(async () => {
   await checkAuth()
-  if (!authenticated.value) {
-    await router.replace('/login')
+  if (authenticated.value) {
+    await router.replace('/dashboard')
+    return
+  }
+
+  // Handle OAuth callback: Google redirects back with ?code=...
+  const code = route.query.code as string | undefined
+  if (code) {
+    loading.value = true
+    error.value = null
+    try {
+      const api = useApi()
+      await api.submitCallback(code)
+      // Clean URL then navigate to dashboard
+      await router.replace('/dashboard')
+    } catch (err: unknown) {
+      error.value = err instanceof Error ? err.message : 'Authentication failed. Please try again.'
+      loading.value = false
+    }
   }
 })
 
-// State
-const scanning = ref(false)
-const stopping = ref(false)
-const scanError = ref<string | null>(null)
-const currentScanId = ref<string | null>(null)
-const eventSource = ref<EventSource | null>(null)
-
-// SSE Stream data
-const scanLogs = ref<string[]>([])
-const scanProgress = ref({ current: 0, total: 0 })
-const results = ref<ScanResult[]>([])
-const scanSummary = ref<Record<string, number> | null>(null)
-
-// UI
-const terminalEl = ref<HTMLElement | null>(null)
-const selectedEmail = ref<ScanResult | null>(null)
-const searchQuery = ref('')
-const activeFilter = ref('')
-const page = ref(1)
-const PAGE_SIZE = 25
-
-const LABEL_ORDER = [
-  'Phishing', 'Spam', 'Security', 'Needs Review', 'Banking', 'Orders',
-  'Work', 'Education', 'Promotions', 'Personal', 'Trusted',
-]
-
-// Auto-scroll terminal
-watch(scanLogs, () => {
-  nextTick(() => {
-    if (terminalEl.value) {
-      terminalEl.value.scrollTop = terminalEl.value.scrollHeight
-    }
-  })
-}, { deep: true })
-
-// Filtering & pagination
-const filteredResults = computed(() => {
-  let list = results.value
-  if (activeFilter.value) {
-    list = list.filter((r) => r.primary_label === activeFilter.value)
-  }
-  if (searchQuery.value.trim()) {
-    const q = searchQuery.value.toLowerCase()
-    list = list.filter(
-      (r) =>
-        r.sender.toLowerCase().includes(q) ||
-        r.subject.toLowerCase().includes(q),
-    )
-  }
-  return list
-})
-
-// Reset to first page whenever filter/search changes
-watch([filteredResults], () => { page.value = 1 })
-
-const totalPages = computed(() => Math.max(1, Math.ceil(filteredResults.value.length / PAGE_SIZE)))
-
-const paginatedResults = computed(() =>
-  filteredResults.value.slice((page.value - 1) * PAGE_SIZE, page.value * PAGE_SIZE),
-)
-
-function updateSummary() {
-  const summary: Record<string, number> = {}
-  for (const r of results.value) {
-    const label = r.primary_label || 'Unknown'
-    summary[label] = (summary[label] || 0) + 1
-  }
-  scanSummary.value = summary
-}
-
-// Scan lifecycle
-function startScan() {
-  // Reset state
-  scanning.value = true
-  stopping.value = false
-  scanError.value = null
-  selectedEmail.value = null
-  results.value = []
-  scanSummary.value = null
-  scanLogs.value = ['Connecting to Gmail...']
-  scanProgress.value = { current: 0, total: 0 }
-  
-  // Create unique scan ID
-  currentScanId.value = crypto.randomUUID()
-  
-  // Start stream
-  const es = api.createScanStream(currentScanId.value)
-  eventSource.value = es
-  
-  es.addEventListener('log', (e) => {
-    const data = JSON.parse(e.data)
-    scanLogs.value.push(data.message)
-    // Keep max 100 lines so it doesn't leak memory
-    if (scanLogs.value.length > 100) scanLogs.value.shift()
-  })
-  
-  es.addEventListener('progress', (e) => {
-    const data = JSON.parse(e.data)
-    scanProgress.value = data
-  })
-  
-  es.addEventListener('start', (e) => {
-    const data = JSON.parse(e.data)
-    scanProgress.value.total = data.total
-  })
-  
-  es.addEventListener('result', (e) => {
-    const data = JSON.parse(e.data)
-    results.value.push(data)
-  })
-  
-  es.addEventListener('done', (e) => {
-    const data = JSON.parse(e.data)
-    if (data.status === 'cancelled') {
-      scanError.value = 'Scan was cancelled.'
-    }
-    closeStream()
-    updateSummary()
-  })
-  
-  es.addEventListener('error', (e) => {
-    const data = JSON.parse(e.data)
-    scanError.value = data.message || 'Unknown stream error.'
-    closeStream()
-    updateSummary()
-  })
-  
-  es.onerror = (e) => {
-    console.error('SSE Error:', e)
-    // If we're stopping, this error is expected when server closes connection
-    if (!stopping.value) {
-      scanError.value = 'Connection to server lost.'
-    }
-    closeStream()
-    updateSummary()
-  }
-}
-
-function closeStream() {
-  if (eventSource.value) {
-    eventSource.value.close()
-    eventSource.value = null
-  }
-  scanning.value = false
-  stopping.value = false
-  currentScanId.value = null
-}
-
-async function handleStopScan() {
-  if (!currentScanId.value) return
-  stopping.value = true
-  scanLogs.value.push('Sending stop signal to server...')
-  
+async function handleSignIn() {
+  loading.value = true
+  error.value = null
   try {
-    await api.stopScan(currentScanId.value)
+    await login()
+    // login() does window.location.href redirect — no further action needed
   } catch (err: unknown) {
-    scanLogs.value.push('Error stopping scan: ' + (err as Error).message)
-    stopping.value = false
+    error.value = err instanceof Error ? err.message : 'Failed to start sign-in. Is the API server running?'
+    loading.value = false
   }
 }
-
-async function handleLogout() {
-  await logout()
-}
-
-// Clean up
-onUnmounted(() => {
-  if (eventSource.value) {
-    eventSource.value.close()
-  }
-})
 </script>
+
+<style scoped>
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+.animate-shimmer {
+  transform: translateX(-100%);
+  animation: shimmer 2s infinite;
+}
+</style>

@@ -5,8 +5,8 @@
  */
 
 export default defineNuxtRouteMiddleware(async (to) => {
-  // Skip the guard on the login page itself to avoid redirect loops
-  if (to.path === '/login') return
+  // Skip the guard on the landing page & proxy login page itself to avoid redirect loops
+  if (to.path === '/' || to.path === '/login') return
 
   // Only run on client (token lives in server filesystem, not browser)
   if (process.server) return
@@ -19,9 +19,9 @@ export default defineNuxtRouteMiddleware(async (to) => {
     if (!res.ok) throw new Error('not ok')
     const data = await res.json()
     if (!data.authenticated) {
-      return navigateTo('/login')
+      return navigateTo('/')
     }
   } catch {
-    return navigateTo('/login')
+    return navigateTo('/')
   }
 })

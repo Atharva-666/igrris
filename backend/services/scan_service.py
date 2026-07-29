@@ -21,7 +21,8 @@ import concurrent.futures
 import logging
 import threading
 import time
-from typing import Callable, Generator
+from typing import Generator
+import json
 
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
@@ -34,22 +35,6 @@ from backend.labels.manager import apply_label, ensure_labels_exist
 
 logger = logging.getLogger(__name__)
 
-
-# ---------------------------------------------------------------------------
-# Result type
-# ---------------------------------------------------------------------------
-# {
-#   "msg_id"          : str,
-#   "sender"          : str,
-#   "subject"         : str,
-#   "ml_label"        : "spam" | "ham" | "unknown",
-#   "primary_label"   : str,   # one of the 11 labels
-#   "secondary_label" : str | None,
-#   "confidence"      : float,
-#   "matched_rule"    : str,
-#   "layer"           : str,
-#   "status"          : "labeled" | "error",
-# }
 
 # ---------------------------------------------------------------------------
 # Rate Limiting
@@ -97,9 +82,8 @@ def _process_single_email(
     all_managed_label_ids: list[str],
 ) -> dict:
     """Process one email: fetch → ML classify → rule classify → apply labels."""
-    # Each thread gets its own service to avoid httplib2 SSL race conditions
     service = _get_thread_service(credentials)
-    # 1. Fetch message details
+    
     _wait_for_rate_limit()
     details = get_message_details(service, msg_id)
     if not details:
@@ -157,22 +141,11 @@ def _process_single_email(
             secondary_label_id=secondary_label_id,
         )
         status = "labeled" if success else "error"
-    else:
-        logger.error("No label ID found for primary label '%s'.", primary_label)
 
-    # 5. Log the decision — sanitize subject to ASCII to avoid emoji crash on Windows
+    # 5. Log the decision
     sec_str = f" + {secondary_label}" if secondary_label else ""
     safe_subject = subject[:40].encode("ascii", errors="replace").decode("ascii")
-    logger.info(
-        "[%s] %s -> %s%s (%.0f%%) | rule=%s",
-        layer,
-        safe_subject,
-        primary_label,
-        sec_str,
-        confidence * 100,
-        matched_rule,
-    )
-
+    
     return {
         "msg_id": msg_id,
         "sender": sender,
@@ -184,6 +157,7 @@ def _process_single_email(
         "matched_rule": matched_rule,
         "layer": layer,
         "status": status,
+        "log_msg": f"[{layer}] {safe_subject} -> {primary_label}{sec_str} ({confidence * 100:.0f}%)"
     }
 
 
@@ -193,45 +167,36 @@ def _process_single_email(
 
 def run_scan(
     service,
-    on_start: Callable[[int], None] | None = None,
-    on_progress: Callable[[int, int], None] | None = None,
-) -> Generator[dict, None, None]:
+    cancel_event: threading.Event | None = None,
+) -> Generator[str, None, None]:
     """
-    Run a complete inbox scan and yield a result dict for each email.
-
-    Parameters
-    ----------
-    service : Gmail API service object
-    on_start : callable(total: int) | None
-    on_progress : callable(current: int, total: int) | None
-
-    Yields
-    ------
-    dict  — result for each processed email
+    Run a complete inbox scan and yield JSON strings (SSE format events).
     """
-    # ------------------------------------------------------------------
-    # Step 1: Ensure all 11 labels exist in Gmail
-    # ------------------------------------------------------------------
-    logger.info("Ensuring all labels exist in Gmail...")
-    label_ids_map = ensure_labels_exist(service)
+    
+    def emit(event_type: str, data: dict):
+        # Format as SSE event string
+        payload = json.dumps(data)
+        return f"event: {event_type}\ndata: {payload}\n\n"
+
+    # 1. Ensure Labels
+    yield emit("log", {"message": "Ensuring all labels exist in Gmail..."})
+    try:
+        label_ids_map = ensure_labels_exist(service)
+    except Exception as e:
+        yield emit("log", {"message": f"Failed to verify labels: {e}"})
+        yield emit("error", {"message": str(e)})
+        return
 
     if not label_ids_map:
-        msg = (
-            "Failed to create or access Gmail labels. "
-            "Please ensure the **Gmail API** is enabled in your Google Cloud Console "
-            "(https://console.cloud.google.com/apis/library/gmail.googleapis.com)."
-        )
-        logger.error(msg)
-        raise RuntimeError(msg)
+        msg = "Failed to create or access Gmail labels. Check your API scopes."
+        yield emit("error", {"message": msg})
+        return
 
     all_managed_label_ids = list(label_ids_map.values())
 
-    # ------------------------------------------------------------------
-    # Step 2: Build Gmail skip-query for all 11 managed labels
-    # For custom labels: -label:"name". For SPAM system label: -in:spam
-    # ------------------------------------------------------------------
+    # 2. Build Query
     from backend.labels.manager import _SYSTEM_LABEL_ALIASES
-    _SYSTEM_SKIP_SYNTAX: dict[str, str] = {"Spam": "-in:spam"}
+    _SYSTEM_SKIP_SYNTAX = {"Spam": "-in:spam"}
     exclusion_parts = []
     for name in LABELS:
         if name in _SYSTEM_SKIP_SYNTAX:
@@ -239,45 +204,47 @@ def run_scan(
         else:
             exclusion_parts.append(f'-label:"{name}"')
     exclusion_query = " ".join(exclusion_parts)
-    logger.info("Gmail search query: %s", exclusion_query)
+    
+    yield emit("log", {"message": f"Built Gmail search query to skip already-labeled items."})
 
-    # ------------------------------------------------------------------
-    # Step 3: Collect all matching message IDs (paginated)
-    # ------------------------------------------------------------------
-    logger.info("Collecting message IDs from Gmail...")
+    # 3. Collect Message IDs
+    yield emit("log", {"message": "Collecting message IDs from Gmail..."})
     message_ids = []
-    for count, msg_id in enumerate(fetch_all_message_ids(service, query=exclusion_query), 1):
-        message_ids.append(msg_id)
-        if count % 100 == 0 and on_progress:
-            on_progress(0, count)
-
-    total = len(message_ids)
-    logger.info("Found %d unlabeled messages to process.", total)
-
-    if on_start:
-        on_start(total)
-
-    if total == 0:
-        logger.info("All messages already labeled. Nothing to do.")
+    try:
+        for count, msg_id in enumerate(fetch_all_message_ids(service, query=exclusion_query), 1):
+            if cancel_event and cancel_event.is_set():
+                yield emit("log", {"message": "Scan cancelled by user during ID collection."})
+                yield emit("done", {"status": "cancelled"})
+                return
+                
+            message_ids.append(msg_id)
+            if count % 50 == 0:
+                yield emit("log", {"message": f"Found {count} unlabeled messages..."})
+    except Exception as e:
+        yield emit("error", {"message": f"Error fetching message IDs: {e}"})
         return
 
-    # ------------------------------------------------------------------
-    # Step 4: Process concurrently (15 workers, rate-limited)
-    # Each worker gets its own Gmail service instance (thread-safe).
-    # ------------------------------------------------------------------
-    # Extract credentials from the main service for worker thread use.
-    # google-api-python-client stores credentials on service._http.credentials
+    total = len(message_ids)
+    yield emit("log", {"message": f"Found {total} unlabeled messages to process."})
+    yield emit("start", {"total": total})
+
+    if total == 0:
+        yield emit("log", {"message": "All messages already labeled. Nothing to do."})
+        yield emit("done", {"status": "complete"})
+        return
+
+    # 4. Process Concurrently
     try:
         credentials = service._http.credentials
     except AttributeError:
-        # Fallback: some auth setups store it differently
         credentials = getattr(service, "_credentials", None)
     
     if not credentials:
-        raise RuntimeError("Could not extract credentials from Gmail service for worker threads.")
+        yield emit("error", {"message": "Could not extract credentials from Gmail service."})
+        return
 
     processed_count = 0
-    with concurrent.futures.ThreadPoolExecutor(max_workers=15) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
         future_to_msg_id = {
             executor.submit(
                 _process_single_email,
@@ -287,25 +254,26 @@ def run_scan(
         }
 
         for future in concurrent.futures.as_completed(future_to_msg_id):
-            processed_count += 1
-            if on_progress:
-                on_progress(processed_count, total)
+            if cancel_event and cancel_event.is_set():
+                # Try to cancel remaining futures
+                for f in future_to_msg_id:
+                    f.cancel()
+                yield emit("log", {"message": "Scan cancelled by user. Shutting down workers..."})
+                yield emit("done", {"status": "cancelled"})
+                return
 
+            processed_count += 1
             try:
                 result = future.result()
-                yield result
+                log_msg = result.pop("log_msg")
+                
+                yield emit("result", result)
+                yield emit("log", {"message": log_msg})
+                yield emit("progress", {"current": processed_count, "total": total})
+                
             except Exception as exc:
                 msg_id = future_to_msg_id[future]
-                logger.error("Message %s generated an exception: %s", msg_id, exc)
-                yield {
-                    "msg_id": msg_id,
-                    "sender": "Unknown",
-                    "subject": "Unknown",
-                    "ml_label": "unknown",
-                    "primary_label": "Needs Review",
-                    "secondary_label": None,
-                    "confidence": 0.0,
-                    "matched_rule": "exception",
-                    "layer": "error",
-                    "status": "error",
-                }
+                yield emit("log", {"message": f"Error processing message {msg_id}: {exc}"})
+                
+    yield emit("log", {"message": "Scan complete!"})
+    yield emit("done", {"status": "complete"})
