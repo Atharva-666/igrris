@@ -1,7 +1,5 @@
 <template>
-  <WavyBackground>
-    <NuxtPage />
-  </WavyBackground>
+  <NuxtPage />
 </template>
 
 <script setup lang="ts">

@@ -13,7 +13,7 @@
     </div>
     
     <!-- Content container -->
-    <div class="relative flex items-center justify-center gap-2 px-4 py-1.5 transition-colors duration-300 group-hover:text-black" :class="textHoverClass">
+    <div class="relative flex items-center justify-center gap-2 px-7 py-1.5 transition-colors duration-300 group-hover:text-black" :class="textHoverClass">
       <span class="transition-transform duration-300 group-hover:-translate-x-1 flex items-center gap-2">
         <slot>{{ text }}</slot>
       </span>

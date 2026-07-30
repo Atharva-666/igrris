@@ -24,9 +24,16 @@ export interface ScanResponse {
   summary: Record<string, number>
 }
 
+export interface PredictionResponse {
+  label: string
+  confidence: number
+}
+
 export interface AuthStatus {
   authenticated: boolean
   email?: string | null
+  picture?: string | null
+  name?: string | null
 }
 
 export function useApi() {
@@ -81,6 +88,14 @@ export function useApi() {
     return apiFetch(`/scan/stop/${scanId}`, { method: 'POST' })
   }
 
+  /** Predict a single message */
+  function predictMessage(text: string) {
+    return apiFetch<PredictionResponse>('/predict', {
+      method: 'POST',
+      body: JSON.stringify({ text }),
+    })
+  }
+
   return {
     getAuthStatus,
     getAuthUrl,
@@ -88,5 +103,6 @@ export function useApi() {
     logout,
     createScanStream,
     stopScan,
+    predictMessage,
   }
 }
