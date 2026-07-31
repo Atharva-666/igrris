@@ -105,25 +105,48 @@ def _process_single_email(
     sender = details["sender"]
     body = details["body"]
 
-    # 2. Layer 1: ML classification
-    email_text = f"{subject}\n{body}"[:9900]
-    ml_result = classify(email_text)
-    ml_label = ml_result["label"]
-    confidence = ml_result["confidence"]
-
-    # 3. Layer 2: Rule engine
-    rule_result = classify_layer2(
+    # 1.5. Threat Intelligence Pre-Filter
+    from backend.threat_intelligence.engine import check, BLOCK_SEVERITY
+    sender_domain = sender.split('@')[-1] if '@' in sender else None
+    ti_result = check(
         subject=subject,
-        sender=sender,
         body=body,
-        ml_label=ml_label,
-        ml_confidence=confidence,
+        sender_email=sender,
+        sender_domain=sender_domain,
+        attachments=None,
+        headers=None
     )
 
-    primary_label = rule_result["primary_label"]
-    secondary_label = rule_result["secondary_label"]
-    matched_rule = rule_result["matched_rule"]
-    layer = rule_result["layer"]
+    if ti_result.get("matched") and ti_result.get("severity") in BLOCK_SEVERITY:
+        ml_label = "spam"
+        confidence = 1.0
+        # Bypass Layer 2 mostly or let it run but we inject the matched rule directly
+        # Wait, the prompt says "return immediately, do not invoke ML model"
+        # But this function returns a specific dictionary structure.
+        primary_label = "Spam"
+        secondary_label = None
+        matched_rule = ti_result.get("rule_name", "THREAT_INTEL")
+        layer = f"threat_intelligence:{ti_result.get('source', 'unknown')}"
+    else:
+        # 2. Layer 1: ML classification
+        email_text = f"{subject}\n{body}"[:9900]
+        ml_result = classify(email_text)
+        ml_label = ml_result["label"]
+        confidence = ml_result["confidence"]
+
+        # 3. Layer 2: Rule engine
+        rule_result = classify_layer2(
+            subject=subject,
+            sender=sender,
+            body=body,
+            ml_label=ml_label,
+            ml_confidence=confidence,
+        )
+
+        primary_label = rule_result["primary_label"]
+        secondary_label = rule_result["secondary_label"]
+        matched_rule = rule_result["matched_rule"]
+        layer = rule_result["layer"]
 
     # 4. Apply Gmail labels
     primary_label_id = label_ids_map.get(primary_label)
@@ -157,8 +180,10 @@ def _process_single_email(
         "matched_rule": matched_rule,
         "layer": layer,
         "status": status,
+        "detection_source": "threat_intelligence" if ti_result.get("matched") and ti_result.get("severity") in BLOCK_SEVERITY else "ml_pipeline",
         "log_msg": f"[{layer}] {safe_subject} -> {primary_label}{sec_str} ({confidence * 100:.0f}%)"
     }
+
 
 
 # ---------------------------------------------------------------------------

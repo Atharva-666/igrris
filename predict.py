@@ -54,6 +54,9 @@ _LABEL_MAP = {0: "ham", 1: "spam"}
 
 MAX_INPUT_LENGTH = 10_000  # characters
 
+# Known spam signatures for the Rule-Based layer
+GTUBE_STRING = "XJS*C4JDBQADN1.NSBN3*2IDNEN*GTUBE-STANDARD-ANTI-UBE-TEST-EMAIL*C.34X"
+
 
 def predict(text: str) -> dict:
     """Classify a single text as *spam* or *ham*.
@@ -80,6 +83,11 @@ def predict(text: str) -> dict:
         raise ValueError(
             f"Input text exceeds maximum length of {MAX_INPUT_LENGTH} characters."
         )
+
+    # 0. Rule-Based Layer (Hybrid Approach)
+    # Catch exact known spam signatures before asking the ML model
+    if GTUBE_STRING in text:
+        return {"label": "spam", "confidence": 1.0}
 
     # 1. Preprocess (same pipeline as training)
     cleaned = transform_text(text)

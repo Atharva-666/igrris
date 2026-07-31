@@ -32,6 +32,9 @@ REDIRECT_URI: str = os.environ.get("REDIRECT_URI", "http://localhost:8501")
 SCOPES: list[str] = [
     "https://www.googleapis.com/auth/gmail.modify",
     "https://www.googleapis.com/auth/gmail.labels",
+    "https://www.googleapis.com/auth/userinfo.email",
+    "https://www.googleapis.com/auth/userinfo.profile",
+    "openid",
 ]
 
 # ---------------------------------------------------------------------------

@@ -25,9 +25,8 @@ MailShield ML Backend (TF-IDF + LinearSVC)
 
 | URL                        | Page            | Purpose                                                                                                   |
 | -------------------------- | --------------- | --------------------------------------------------------------------------------------------------------- |
-| `localhost:8501/`          | `index.vue`     | Public landing page — explains features, has "Connect Gmail" CTA                                          |
-| `localhost:8501/login`     | `login.vue`     | **OAuth callback catcher** — catches `?code=` from Google, exchanges for token, redirects to `/dashboard` |
-| `localhost:8501/dashboard` | `dashboard.vue` | Protected page — shows real-time scan logs, results table, stop button                                    |
+| `localhost:8501/`          | `index.vue`     | Unified Landing Page & Dashboard. Has "Secure Your Inbox", Pipeline flow, and the actual scanning dashboard. |
+| `localhost:8501/login`     | `login.vue`     | **OAuth callback catcher** — catches `?code=` from Google, exchanges for token, redirects to `/` |
 
 ## Critical Rules
 
@@ -39,9 +38,8 @@ MailShield ML Backend (TF-IDF + LinearSVC)
 
 ### Page Responsibilities
 
-- **`index.vue`** — Pure landing page. NO OAuth callback handling. Only redirects already-authenticated users to `/dashboard`.
-- **`login.vue`** — Invisible callback handler ONLY. If `?code=` is present → exchange token → redirect to `/dashboard`. If no code → redirect to `/`.
-- **`dashboard.vue`** — Protected. If not authenticated → redirect to `/`.
+- **`index.vue`** — Unified Application. Handles landing page content (Hero, Pipeline Section, Features). If authenticated, reveals the Dashboard section at the bottom (`#dashboard`) with real-time scan logs, results table, and stop button.
+- **`login.vue`** — Invisible callback handler ONLY. If `?code=` is present → exchange token → redirect to `/`. If no code → redirect to `/`.
 
 ### SSE Streaming
 
@@ -58,9 +56,8 @@ MailShield ML Backend (TF-IDF + LinearSVC)
 | `backend/mailshield_api.py`               | FastAPI routes including SSE scan stream                    |
 | `backend/services/scan_service.py`        | ML scanning logic, yields SSE events                        |
 | `backend/auth/oauth.py`                   | Google OAuth flow (get URL, exchange code, refresh, revoke) |
-| `frontend-web/app/pages/index.vue`        | Landing page                                                |
+| `frontend-web/app/pages/index.vue`        | Landing page & Scan Dashboard (Merged)                      |
 | `frontend-web/app/pages/login.vue`        | OAuth callback catcher                                      |
-| `frontend-web/app/pages/dashboard.vue`    | Scan dashboard                                              |
 | `frontend-web/app/composables/useApi.ts`  | All API calls                                               |
 | `frontend-web/app/composables/useAuth.ts` | Auth state, login(), logout()                               |
 
@@ -96,16 +93,53 @@ Script starts:
 
 - **"Connection to server lost" during scan**: The backend process might be a zombie from a previous session. Run `Stop-Process -Name python -Force` before restarting.
 - **"/login 404"**: `REDIRECT_URI` in config.py doesn't include `/login` suffix, or `login.vue` was accidentally deleted.
+- **"Scope has changed" error**: Make sure `openid` is in the requested scopes list inside `backend/config.py` along with email, profile, etc.
 - **"circles around itself"**: `index.vue` was also handling `?code=` OAuth callback — only `login.vue` should do this.
-- **Labels cut off in table**: Ensure the Label `th` has `w-48` and the `td` has `whitespace-nowrap`.
+- **Labels cut off in table**: Ensure the dashboard container has a wider max-width (e.g. `1600px` or `95%`) and `whitespace-nowrap` on `td`.
 
 ## Inspira UI & Animation Architecture
 
-- **`useMotionPresets.ts`**: Centralized composable providing `fadeUp`, `scaleIn`, and `hoverLift` spring animation presets with `prefers-reduced-motion` auto-detection.
-- **`lenis.client.ts`**: Desktop-only smooth scroll initialization using `@studio-freight/lenis`. Automatically skipped on mobile screens (`<=768px`) or when reduced motion is requested. Pauses `requestAnimationFrame` on `visibilitychange` (hidden tab).
-- **SSE Item Batching**: In [`dashboard.vue`](file:///c:/Users/VICTUS/OneDrive/Attachments/Desktop/MailShield-AI/frontend-web/app/pages/dashboard.vue), fast SSE `result` stream events are queued into `resultBatchQueue` and flushed every 100ms to prevent layout thrashing and animation lag.
-- **Page Transitions**: Smooth 0.4s cubic-bezier page transitions defined in [`app.vue`](file:///c:/Users/VICTUS/OneDrive/Attachments/Desktop/MailShield-AI/frontend-web/app/app.vue).
-- **Global `WavyBackground.vue`**: High-end interactive canvas hero background creating smooth, non-repeating sine waves in a monochrome palette (`#ffffff`, `#e5e5e5`, etc.). Applied **globally** in [`app.vue`](file:///c:/Users/VICTUS/OneDrive/Attachments/Desktop/MailShield-AI/frontend-web/app/app.vue) so it renders behind all pages. Card components use `backdrop-blur` to let the sweeping waves shine through.
-- **Buttons**: All buttons across the app (Landing Page CTA, Header, Dashboard actions) upgraded to **[`InteractiveHoverButton.vue`](file:///c:/Users/VICTUS/OneDrive/Attachments/Desktop/MailShield-AI/frontend-web/app/components/InteractiveHoverButton.vue)**, featuring a fluid expanding background circle and slide-in arrow on hover.
+- **`useMotionPresets.ts`**: Centralized composable providing `fadeUp`, `scaleIn`, and `hoverLift` spring animation presets.
+- **`lenis.client.ts`**: Desktop-only smooth scroll initialization using `@studio-freight/lenis`.
+- **SSE Item Batching**: In `index.vue` (dashboard section), fast SSE `result` stream events are queued into `resultBatchQueue` and flushed every 100ms.
+- **Global `WavyBackground.vue`**: High-end interactive canvas hero background applied **globally** in `app.vue`.
+
+## UI & Component Map (Where to find what)
+
+**Layout & Main Sections (`frontend-web/app/pages/index.vue`)**:
+- **Header (`<header>`)**: Seamless floating navbar (`bg-transparent border-none py-6`) with no dark background bar, allowing background waves to flow cleanly through to the top edge behind the brand logo and profile controls.
+- **Hero Section (`id="hero"`)**: The main title "Secure Your Inbox" with the large CTA button that auto-scrolls to the dashboard or logs the user in.
+- **Features Grid (`id="features"`)**: 3-column grid explaining Core Engine, Action, and Live Processing.
+- **Pipeline Flow (`id="how-it-works"`)**: The 4-step vertical timeline featuring IDE window cards with top bar dots, glassmorphic backdrop, and custom code syntax highlighting.
+- **Dashboard Section (`id="dashboard"`)**: Conditionally rendered (`v-if="authenticated"`) at the bottom of the page. Contains the live scanning terminal and the max 1600px wide scan results table.
+
+**Reusable Components (`frontend-web/app/components/`)**:
+- **`InteractiveHoverButton.vue`**: Fluid buttons used for "Secure Your Inbox", Header actions, and Dashboard controls. Features an expanding background circle and slide-in arrow.
+- **`ScanStats.vue`**: Component used in the dashboard header to display counters (Total, Spam, Phishing, Clean).
+- **`LabelBadge.vue`**: Colored pill badges used in the dashboard results table to display the ML prediction category.
+- **`WavyBackground.vue`**: The animated canvas background rendered globally (uses `fixed inset-0` with bounded sinusoidal Y-parallax to keep waves centered in viewport at all scroll depths including page bottom, `waveWidth: 100`, `blur: 23`).
 
 
+
+
+## Enterprise Threat Intelligence Layer (Added 2026-07-30)
+- Added ackend/threat_intelligence module.
+- Acts as a pre-filter before the ML model inside scan_service.py (_process_single_email).
+- Uses config.json for block severity (critical, high).
+- Downloads, parses and caches threat feeds into Python sets.
+- Starts automatically at FastAPI startup (mailshield_api.py).
+- Does not modify existing ML logic (predict.py, models).
+
+
+## Detection Architecture
+
+### Layer 1: Threat Intelligence
+- Known malicious URLs
+- Blacklisted domains
+- Disposable domains
+- Security rules
+
+### Layer 2: Machine Learning
+- TF-IDF
+- LinearSVC
+- Unknown pattern detection

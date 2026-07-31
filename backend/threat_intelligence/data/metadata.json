@@ -1,0 +1,10 @@
+{
+    "last_updated": "2026-07-30T11:41:05Z",
+    "last_updated_ts": 1785411665.6258469,
+    "version": "1.0",
+    "sources": [
+        "URLhaus",
+        "OpenPhish",
+        "Disposable"
+    ]
+}

@@ -2,48 +2,56 @@
   <WavyBackground>
     <main class="relative text-surface-100 overflow-hidden min-h-screen flex flex-col">
 
-      <header class="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between w-full border-b border-surface-800/50 bg-surface-950/40 backdrop-blur-sm">
-        <!-- Brand -->
-        <div class="flex items-center gap-3">
-          <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center shadow-[0_0_15px_rgba(var(--color-brand-600),0.5)]">
-            <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-            </svg>
-          </div>
-          <span class="text-lg font-bold tracking-tight text-white">MailShield AI</span>
-        </div>
-
-        <!-- Actions -->
-        <div class="flex items-center gap-2">
-          <template v-if="authenticated">
-            <div class="flex items-center gap-4">
-              <InteractiveHoverButton 
-                id="btn-logout" 
-                class="!border-transparent !bg-transparent hover:!border-surface-700 text-surface-200"
-                @click="handleLogout"
-              >
-                Sign out
-              </InteractiveHoverButton>
-
-              <!-- Profile Logo -->
-              <div v-if="userPicture" class="w-9 h-9 rounded-full overflow-hidden border border-surface-700 shadow-lg">
-                <img :src="userPicture" alt="Profile" class="w-full h-full object-cover" />
-              </div>
-              <div v-else class="w-9 h-9 rounded-full bg-gradient-to-tr from-brand-500 to-purple-500 flex items-center justify-center text-white shadow-lg border border-surface-700">
-                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-              </div>
+      <!-- Seamless Floating Header (No dark bar cutting off waves) -->
+      <header class="relative z-50 w-full pt-6 pb-4">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between w-full">
+          <!-- Brand -->
+          <div class="flex items-center gap-3 group cursor-pointer" @click="router.push('/')">
+            <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-500 via-brand-600 to-purple-600 flex items-center justify-center shadow-[0_0_25px_rgba(var(--color-brand-600),0.5)] group-hover:scale-105 transition-transform">
+              <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+              </svg>
             </div>
-          </template>
-          <template v-else>
-            <InteractiveHoverButton
-              class="!bg-white/10 hover:!bg-white/20 border-white/10 !text-white shadow-none backdrop-blur-md"
-              @click="handleSignIn"
-              :disabled="loading"
-              :text="loading ? 'Connecting...' : 'Sign In'"
-            />
-          </template>
+            <div class="flex items-center gap-2">
+              <span class="text-xl font-extrabold tracking-tight text-white group-hover:text-brand-300 transition-colors">MailShield</span>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="flex items-center gap-3">
+            <template v-if="authenticated">
+              <div class="flex items-center gap-3 bg-surface-900/80 p-1.5 pl-2.5 rounded-full border border-surface-700/60 backdrop-blur-md shadow-xl">
+                <!-- Profile Logo -->
+                <div v-if="userPicture" class="w-8 h-8 rounded-full overflow-hidden border border-surface-700 shadow-md shrink-0">
+                  <img :src="userPicture" alt="Profile" class="w-full h-full object-cover" />
+                </div>
+                <div v-else class="w-8 h-8 rounded-full bg-gradient-to-tr from-brand-500 to-purple-500 flex items-center justify-center text-white shadow-md border border-surface-700 shrink-0">
+                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                </div>
+
+                <button 
+                  id="btn-logout" 
+                  class="px-3.5 py-1.5 rounded-full text-xs font-medium text-surface-300 hover:text-white bg-surface-800/80 hover:bg-surface-700 border border-surface-700/80 hover:border-surface-600 transition-all flex items-center gap-1.5 shadow-sm"
+                  @click="handleLogout"
+                >
+                  <span>Sign out</span>
+                  <svg class="w-3.5 h-3.5 text-surface-400 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
+                </button>
+              </div>
+            </template>
+            <template v-else>
+              <InteractiveHoverButton
+                class="!bg-white/10 hover:!bg-white/20 border-white/10 !text-white shadow-none backdrop-blur-md"
+                @click="handleSignIn"
+                :disabled="loading"
+                :text="loading ? 'Connecting...' : 'Sign In'"
+              />
+            </template>
+          </div>
         </div>
       </header>
 
@@ -228,16 +236,17 @@
           <!-- Feature 3 -->
           <div 
             v-motion :initial="fadeUp(300).initial" :visible-once="fadeUp(300).enter"
-            class="bg-surface-900/50 backdrop-blur-md border border-surface-800 p-8 rounded-2xl hover:bg-surface-800/50 transition-colors duration-300 group"
+            class="bg-surface-900/60 backdrop-blur-xl border border-surface-700/60 p-8 rounded-2xl hover:bg-surface-800/60 hover:border-brand-500/40 hover:shadow-[0_0_30px_rgba(var(--color-brand-600),0.2)] transition-all duration-300 group relative overflow-hidden"
           >
-            <div class="w-12 h-12 rounded-xl bg-brand-950/50 border border-brand-900/50 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-              <svg class="w-6 h-6 text-brand-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <div class="absolute -top-12 -right-12 w-28 h-28 bg-brand-500/10 rounded-full blur-2xl group-hover:bg-brand-500/25 transition-all duration-500"></div>
+            <div class="w-12 h-12 rounded-xl bg-brand-950/70 border border-brand-900/70 flex items-center justify-center mb-6 group-hover:scale-110 group-hover:border-brand-500/50 shadow-inner transition-transform duration-300">
+              <svg class="w-6 h-6 text-brand-400 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
             </div>
-            <h3 class="text-xl font-semibold text-white mb-3">Live Processing</h3>
+            <h3 class="text-xl font-semibold text-white mb-3 group-hover:text-brand-300 transition-colors">Live Processing</h3>
             <p class="text-surface-400 leading-relaxed text-sm">
-              Watch the ML model process your inbox in real-time. Server-Sent Events stream scan progress directly to a sleek terminal interface.
+              Watch the ML model process your inbox in real-time. <span class="text-brand-300 font-medium">Server-Sent Events</span> stream scan progress directly to a sleek terminal interface.
             </p>
           </div>
 
@@ -278,11 +287,17 @@
                 <h3 class="text-xl font-bold text-white group-hover:text-brand-400 transition-colors">1. Secure Extraction</h3>
                 <p class="text-surface-400 text-sm leading-relaxed mt-2">Connects to the Gmail API using read-only scopes. We fetch email headers and decode the body while ensuring strict privacy.</p>
               </div>
-              <div class="bg-surface-900/40 backdrop-blur-md border border-surface-800 p-5 rounded-2xl shadow-lg relative overflow-hidden group-hover:border-brand-500/30 transition-colors duration-500">
-                <div class="absolute inset-0 bg-gradient-to-r from-brand-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                <pre class="font-mono text-xs text-surface-300 overflow-x-auto"><code>GET /gmail/v1/users/me/messages
-Headers: Authorization: Bearer...
-Response: { "id": "189a...", "snippet": "..." }</code></pre>
+              <div class="bg-surface-900/60 backdrop-blur-xl border border-surface-700/60 p-5 rounded-2xl shadow-xl relative overflow-hidden group-hover:border-brand-500/40 group-hover:shadow-[0_0_30px_rgba(var(--color-brand-600),0.2)] transition-all duration-500">
+                <div class="absolute inset-0 bg-gradient-to-r from-brand-500/10 via-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                <div class="flex items-center gap-1.5 mb-3 border-b border-surface-800 pb-2">
+                  <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                  <div class="w-2.5 h-2.5 rounded-full bg-amber-500/80"></div>
+                  <div class="w-2.5 h-2.5 rounded-full bg-emerald-500/80"></div>
+                  <span class="ml-2 text-[10px] font-mono text-surface-500">api_request.http</span>
+                </div>
+                <pre class="font-mono text-xs text-surface-300 overflow-x-auto leading-relaxed"><code><span class="text-cyan-400">GET</span> /gmail/v1/users/me/messages
+<span class="text-surface-500">Headers:</span> Authorization: Bearer...
+<span class="text-emerald-400">Response:</span> { "id": "189a...", "snippet": "..." }</code></pre>
               </div>
             </div>
           </div>
@@ -304,11 +319,17 @@ Response: { "id": "189a...", "snippet": "..." }</code></pre>
                 <h3 class="text-xl font-bold text-white group-hover:text-purple-400 transition-colors">2. Preprocessing & NLP</h3>
                 <p class="text-surface-400 text-sm leading-relaxed mt-2">Raw text is cleaned, tokenized, and converted to lowercase. URLs, emails, and numbers are replaced with special tokens.</p>
               </div>
-              <div class="bg-surface-900/40 backdrop-blur-md border border-surface-800 p-5 rounded-2xl shadow-lg relative overflow-hidden group-hover:border-purple-500/30 transition-colors duration-500">
-                 <div class="absolute inset-0 bg-gradient-to-l from-purple-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                 <pre class="font-mono text-xs text-surface-300 overflow-x-auto"><code>text = clean_text(email.body)
-vector = tfidf.transform([text])
-# Shape: (1, 15000) sparse matrix</code></pre>
+              <div class="bg-surface-900/60 backdrop-blur-xl border border-surface-700/60 p-5 rounded-2xl shadow-xl relative overflow-hidden group-hover:border-purple-500/40 group-hover:shadow-[0_0_30px_rgba(168,85,247,0.2)] transition-all duration-500">
+                 <div class="absolute inset-0 bg-gradient-to-l from-purple-500/10 via-pink-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                 <div class="flex items-center gap-1.5 mb-3 border-b border-surface-800 pb-2">
+                   <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                   <div class="w-2.5 h-2.5 rounded-full bg-amber-500/80"></div>
+                   <div class="w-2.5 h-2.5 rounded-full bg-emerald-500/80"></div>
+                   <span class="ml-2 text-[10px] font-mono text-surface-500">preprocess.py</span>
+                 </div>
+                 <pre class="font-mono text-xs text-surface-300 overflow-x-auto leading-relaxed"><code><span class="text-purple-400">text</span> = <span class="text-blue-400">clean_text</span>(email.body)
+<span class="text-purple-400">vector</span> = tfidf.<span class="text-blue-400">transform</span>([text])
+<span class="text-surface-500"># Shape: (1, 15000) sparse matrix</span></code></pre>
               </div>
             </div>
           </div>
@@ -330,11 +351,17 @@ vector = tfidf.transform([text])
                 <h3 class="text-xl font-bold text-white group-hover:text-blue-400 transition-colors">3. LinearSVC Classification</h3>
                 <p class="text-surface-400 text-sm leading-relaxed mt-2">The sparse matrix is passed to our Linear Support Vector Classifier, calculating decision scores across 11 distinct categories.</p>
               </div>
-              <div class="bg-surface-900/40 backdrop-blur-md border border-surface-800 p-5 rounded-2xl shadow-lg relative overflow-hidden group-hover:border-blue-500/30 transition-colors duration-500">
-                <div class="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                <pre class="font-mono text-xs text-surface-300 overflow-x-auto"><code>scores = model.decision_function(vector)
-prediction = classes[np.argmax(scores)]
-confidence = softmax(scores)</code></pre>
+              <div class="bg-surface-900/60 backdrop-blur-xl border border-surface-700/60 p-5 rounded-2xl shadow-xl relative overflow-hidden group-hover:border-blue-500/40 group-hover:shadow-[0_0_30px_rgba(59,130,246,0.2)] transition-all duration-500">
+                <div class="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-purple-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                <div class="flex items-center gap-1.5 mb-3 border-b border-surface-800 pb-2">
+                  <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                  <div class="w-2.5 h-2.5 rounded-full bg-amber-500/80"></div>
+                  <div class="w-2.5 h-2.5 rounded-full bg-emerald-500/80"></div>
+                  <span class="ml-2 text-[10px] font-mono text-surface-500">classifier.py</span>
+                </div>
+                <pre class="font-mono text-xs text-surface-300 overflow-x-auto leading-relaxed"><code><span class="text-purple-400">scores</span> = model.<span class="text-blue-400">decision_function</span>(vector)
+<span class="text-purple-400">prediction</span> = classes[np.<span class="text-blue-400">argmax</span>(scores)]
+<span class="text-purple-400">confidence</span> = <span class="text-emerald-400">softmax</span>(scores)</code></pre>
               </div>
             </div>
           </div>
@@ -356,12 +383,18 @@ confidence = softmax(scores)</code></pre>
                 <h3 class="text-xl font-bold text-white group-hover:text-emerald-400 transition-colors">4. Smart Action & Labeling</h3>
                 <p class="text-surface-400 text-sm leading-relaxed mt-2">The predicted label is mapped to a Gmail Label ID and applied to the email, organizing your inbox instantly.</p>
               </div>
-              <div class="bg-surface-900/40 backdrop-blur-md border border-surface-800 p-5 rounded-2xl shadow-lg relative overflow-hidden group-hover:border-emerald-500/30 transition-colors duration-500">
-                <div class="absolute inset-0 bg-gradient-to-l from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                <pre class="font-mono text-xs text-surface-300 overflow-x-auto"><code>POST /gmail/v1/users/me/messages/{id}/modify
+              <div class="bg-surface-900/60 backdrop-blur-xl border border-surface-700/60 p-5 rounded-2xl shadow-xl relative overflow-hidden group-hover:border-emerald-500/40 group-hover:shadow-[0_0_30px_rgba(16,185,129,0.2)] transition-all duration-500">
+                <div class="absolute inset-0 bg-gradient-to-l from-emerald-500/10 via-teal-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                <div class="flex items-center gap-1.5 mb-3 border-b border-surface-800 pb-2">
+                  <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                  <div class="w-2.5 h-2.5 rounded-full bg-amber-500/80"></div>
+                  <div class="w-2.5 h-2.5 rounded-full bg-emerald-500/80"></div>
+                  <span class="ml-2 text-[10px] font-mono text-surface-500">modify_labels.json</span>
+                </div>
+                <pre class="font-mono text-xs text-surface-300 overflow-x-auto leading-relaxed"><code><span class="text-cyan-400">POST</span> /gmail/v1/users/me/messages/{id}/modify
 {
-  "addLabelIds": ["Label_4"],
-  "removeLabelIds": ["INBOX"]
+  <span class="text-purple-400">"addLabelIds"</span>: [<span class="text-emerald-400">"Label_4"</span>],
+  <span class="text-purple-400">"removeLabelIds"</span>: [<span class="text-amber-400">"INBOX"</span>]
 }</code></pre>
               </div>
             </div>

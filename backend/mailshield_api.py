@@ -33,7 +33,7 @@ if _ROOT not in sys.path:
 
 from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from backend.auth.oauth import (
     get_auth_url,
@@ -60,6 +60,12 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url="/redoc",
 )
+
+@app.on_event("startup")
+async def startup_event():
+    from backend.threat_intelligence.startup import init_threat_intelligence
+    init_threat_intelligence()
+
 
 # Allow the Nuxt dev server (port 3000) and any other local origin.
 # In production replace ["*"] with your actual frontend domain.
@@ -92,12 +98,23 @@ class AuthUrlResponse(BaseModel):
 class AuthStatusResponse(BaseModel):
     authenticated: bool
     email: str | None = None
+    picture: str | None = None
+    name: str | None = None
 
 
 class ScanResponse(BaseModel):
     total: int
     results: list[dict]
     summary: dict
+
+
+class PredictRequest(BaseModel):
+    text: str = Field(..., min_length=1, description="Email / SMS body text")
+
+
+class PredictResponse(BaseModel):
+    label: str
+    confidence: float
 
 
 # ---------------------------------------------------------------------------
@@ -150,6 +167,21 @@ async def auth_callback(body: CallbackRequest) -> AuthStatusResponse:
         )
 
 
+import requests
+
+def get_user_info(credentials) -> dict:
+    try:
+        resp = requests.get(
+            "https://www.googleapis.com/oauth2/v1/userinfo",
+            headers={"Authorization": f"Bearer {credentials.token}"},
+            timeout=5
+        )
+        if resp.status_code == 200:
+            return resp.json()
+    except Exception as e:
+        logger.warning(f"Failed to fetch user info: {e}")
+    return {}
+
 @app.get("/auth/status", response_model=AuthStatusResponse, tags=["auth"])
 async def auth_status() -> AuthStatusResponse:
     """
@@ -164,7 +196,13 @@ async def auth_status() -> AuthStatusResponse:
 
     try:
         creds = refresh_if_expired(creds)
-        return AuthStatusResponse(authenticated=True)
+        user_info = get_user_info(creds)
+        return AuthStatusResponse(
+            authenticated=True,
+            email=user_info.get("email"),
+            picture=user_info.get("picture"),
+            name=user_info.get("name")
+        )
     except Exception as exc:
         logger.warning("Credential refresh failed: %s", exc)
         return AuthStatusResponse(authenticated=False)
@@ -244,3 +282,23 @@ async def stop_scan(scan_id: str):
         logger.info("Cancellation requested for scan %s", scan_id)
         return {"status": "cancelling"}
     return {"status": "not_found"}
+
+
+from predict import predict
+
+@app.post("/predict", response_model=PredictResponse, tags=["scan"])
+async def predict_endpoint(request: PredictRequest):
+    """Classify input text as spam or ham."""
+    text = request.text.strip()
+    if not text:
+        raise HTTPException(status_code=400, detail="Text must not be empty.")
+
+    try:
+        result = predict(text)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    except Exception as exc:
+        logger.exception("Unexpected error during prediction")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+    return PredictResponse(**result)
