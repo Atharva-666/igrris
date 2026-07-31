@@ -7,13 +7,16 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between w-full">
           <!-- Brand -->
           <div class="flex items-center gap-3 group cursor-pointer" @click="router.push('/')">
-            <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-500 via-brand-600 to-purple-600 flex items-center justify-center shadow-[0_0_25px_rgba(var(--color-brand-600),0.5)] group-hover:scale-105 transition-transform">
-              <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-              </svg>
+            <div class="w-20 h-20 flex items-center justify-center group-hover:scale-105 transition-transform shrink-0">
+              <img src="/logo.png" alt="Igrris Logo" class="w-full h-full object-contain filter " />
             </div>
             <div class="flex items-center gap-2">
-              <span class="text-xl font-extrabold tracking-tight text-white group-hover:text-brand-300 transition-colors">MailShield</span>
+              <EncryptedText 
+                text="Igrris" 
+                :interval="3000" 
+                :scramble-speed="70" 
+                class="text-xl sm:text-2xl font-black tracking-tight text-white group-hover:text-brand-300 transition-colors" 
+              />
             </div>
           </div>
 
@@ -83,7 +86,7 @@
           v-motion :initial="fadeUp(300).initial" :enter="fadeUp(300).enter"
           class="text-lg md:text-xl text-surface-400 max-w-2xl mb-12 leading-relaxed"
         >
-          MailShield AI scans your Gmail using an advanced LinearSVC machine learning model to automatically categorize emails, block phishing attempts, and keep your inbox secure.
+          Igrris AI scans your Gmail using an advanced LinearSVC machine learning model to automatically categorize emails, block phishing attempts, and keep your inbox secure.
         </p>
         
         <div 
@@ -260,7 +263,7 @@
           class="text-center mb-16 md:mb-24"
         >
           <h2 class="text-3xl sm:text-4xl font-bold text-white mb-4">How it works</h2>
-          <p class="text-surface-400 max-w-2xl mx-auto">MailShield AI uses a sophisticated ML pipeline to analyze, categorize, and secure your inbox in real-time.</p>
+          <p class="text-surface-400 max-w-2xl mx-auto">Igrris AI uses a sophisticated ML pipeline to analyze, categorize, and secure your inbox in real-time.</p>
         </div>
 
         <div class="relative flex flex-col items-center">
@@ -417,16 +420,72 @@
 
     <main class="flex-1 w-full max-w-[95%] xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
-      <!-- Error banner -->
-      <div v-if="scanError" class="mb-6 card border-red-900 bg-red-950/30 flex items-start gap-3 !p-4">
-        <svg class="w-5 h-5 text-red-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-        </svg>
-        <div>
-          <p class="text-sm font-medium text-red-300">Scan Error</p>
-          <p class="text-sm text-red-400 mt-0.5">{{ scanError }}</p>
+      <!-- Error banner (Centered Inspira UI Glass Pill) -->
+      <div 
+        v-if="scanError" 
+        class="max-w-2xl mx-auto mb-6 bg-red-950/60 border border-red-500/40 backdrop-blur-xl p-4 rounded-2xl shadow-[0_0_25px_rgba(239,68,68,0.15)] flex items-center justify-center text-center gap-3 relative animate-fade-in"
+      >
+        <div class="w-8 h-8 rounded-full bg-red-900/50 border border-red-700/50 flex items-center justify-center shrink-0">
+          <svg class="w-4 h-4 text-red-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
         </div>
-        <button class="ml-auto btn-ghost !p-1 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-red-600 focus-visible:ring-offset-surface-950" @click="scanError = null">
+        <div class="pr-8">
+          <span class="text-sm font-medium text-red-200">{{ scanError }}</span>
+        </div>
+        <button 
+          class="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-full text-red-400 hover:text-white hover:bg-red-900/50 transition-all focus:outline-none" 
+          @click="scanError = null"
+          title="Dismiss"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Label Deletion Success Banner (Centered Inspira UI Glass Pill) -->
+      <div 
+        v-if="deleteSuccessMsg" 
+        class="max-w-2xl mx-auto mb-6 bg-emerald-950/60 border border-emerald-500/40 backdrop-blur-xl p-4 rounded-2xl shadow-[0_0_25px_rgba(16,185,129,0.15)] flex items-center justify-center text-center gap-3 relative animate-fade-in"
+      >
+        <div class="w-8 h-8 rounded-full bg-emerald-900/50 border border-emerald-700/50 flex items-center justify-center shrink-0">
+          <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+        </div>
+        <div class="pr-8">
+          <span class="text-sm font-medium text-emerald-200">{{ deleteSuccessMsg }}</span>
+        </div>
+        <button 
+          class="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-full text-emerald-400 hover:text-white hover:bg-emerald-900/50 transition-all focus:outline-none" 
+          @click="deleteSuccessMsg = null"
+          title="Dismiss"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Label Deletion Error Banner (Centered Inspira UI Glass Pill) -->
+      <div 
+        v-if="deleteErrorMsg" 
+        class="max-w-2xl mx-auto mb-6 bg-red-950/60 border border-red-500/40 backdrop-blur-xl p-4 rounded-2xl shadow-[0_0_25px_rgba(239,68,68,0.15)] flex items-center justify-center text-center gap-3 relative animate-fade-in"
+      >
+        <div class="w-8 h-8 rounded-full bg-red-900/50 border border-red-700/50 flex items-center justify-center shrink-0">
+          <svg class="w-4 h-4 text-red-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+        </div>
+        <div class="pr-8">
+          <span class="text-sm font-medium text-red-200">{{ deleteErrorMsg }}</span>
+        </div>
+        <button 
+          class="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-full text-red-400 hover:text-white hover:bg-red-900/50 transition-all focus:outline-none" 
+          @click="deleteErrorMsg = null"
+          title="Dismiss"
+        >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
           </svg>
@@ -507,7 +566,7 @@
       </div>
 
       <!-- Empty state (not yet scanned) -->
-      <div v-else-if="!results.length && !scanError" class="animate-fade-in">
+      <div v-else-if="!results.length" class="animate-fade-in">
         <div class="card !p-12 flex flex-col items-center gap-4 text-center max-w-lg mx-auto">
           <div class="w-14 h-14 rounded-2xl bg-surface-800 flex items-center justify-center">
             <svg class="w-7 h-7 text-surface-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
@@ -518,7 +577,19 @@
             <p class="text-base font-medium text-surface-100">No emails scanned yet</p>
             <p class="text-muted mt-1">Click <strong class="text-surface-300">Scan Gmail</strong> to analyse your inbox with the ML model.</p>
           </div>
-          <button id="btn-scan-empty" class="btn-primary" @click="startScan">Scan Gmail</button>
+          <div class="flex flex-wrap items-center justify-center gap-3">
+            <button id="btn-scan-empty" class="btn-primary" @click="startScan">Scan Gmail</button>
+            <button
+              id="btn-delete-labels-empty"
+              class="px-4 py-2.5 rounded-xl text-sm font-medium border transition-all flex items-center justify-center gap-2 bg-red-950/40 hover:bg-red-900/60 border-red-800/60 text-red-300 hover:text-white shadow-lg hover:shadow-red-900/30"
+              @click="showDeleteModal = true"
+            >
+              <svg class="w-4 h-4 text-red-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+              <span>Delete Labels</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -558,6 +629,31 @@
             <option value="">All labels</option>
             <option v-for="l in LABEL_ORDER" :key="l" :value="l">{{ l }}</option>
           </select>
+
+          <!-- Scan Gmail button in results toolbar -->
+          <button
+            id="btn-scan-results"
+            class="px-4 py-2 rounded-xl text-sm font-medium border transition-all flex items-center justify-center gap-2 bg-brand-600/30 hover:bg-brand-600/50 border-brand-500/60 text-white shadow-lg hover:shadow-brand-600/20 shrink-0"
+            @click="startScan"
+          >
+            <svg class="w-4 h-4 text-brand-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            <span>Scan Gmail</span>
+          </button>
+
+          <!-- Delete Labels button -->
+          <button
+            id="btn-delete-labels-results"
+            class="px-4 py-2 rounded-xl text-sm font-medium border transition-all flex items-center justify-center gap-2 bg-red-950/40 hover:bg-red-900/60 border-red-800/60 text-red-300 hover:text-white shadow-lg hover:shadow-red-900/30 shrink-0"
+            @click="showDeleteModal = true"
+            :disabled="deletingLabels"
+          >
+            <svg class="w-4 h-4 text-red-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+            <span>Delete Labels</span>
+          </button>
 
           <!-- Result count -->
           <p class="text-muted self-center shrink-0 text-sm">
@@ -614,6 +710,66 @@
 
     
 <EmailDetails :email="selectedEmail" @close="selectedEmail = null" />
+
+        <!-- Delete Labels Confirmation Modal -->
+        <div v-if="showDeleteModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-fade-in">
+          <div class="bg-surface-900 border border-surface-700/80 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl relative overflow-hidden">
+            <!-- Glow effect -->
+            <div class="absolute -top-16 -right-16 w-32 h-32 bg-red-500/20 rounded-full blur-2xl pointer-events-none"></div>
+
+            <div class="flex items-center gap-3 mb-4">
+              <div class="w-10 h-10 rounded-2xl bg-red-950/80 border border-red-800/80 flex items-center justify-center text-red-400 shrink-0">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </div>
+              <div>
+                <h3 class="text-lg font-bold text-white">Delete Gmail Labels</h3>
+                <p class="text-xs text-surface-400">Remove Igrris categories from Gmail</p>
+              </div>
+            </div>
+
+            <p class="text-sm text-surface-300 mb-6 leading-relaxed">
+              This will permanently delete the custom Igrris labels (e.g. <span class="text-red-400 font-medium">Phishing</span>, <span class="text-blue-400 font-medium">Security</span>, <span class="text-purple-400 font-medium">Orders</span>) from your connected Gmail account. Your emails will not be deleted.
+            </p>
+
+            <div v-if="activeFilter" class="mb-5 p-3 bg-surface-950/60 rounded-xl border border-surface-800 flex items-center justify-between">
+              <span class="text-xs text-surface-400">Selected Label Filter:</span>
+              <span class="text-xs font-semibold text-brand-300">{{ activeFilter }}</span>
+            </div>
+
+            <div class="flex flex-col gap-2.5 sm:flex-row sm:justify-end">
+              <button 
+                class="px-4 py-2.5 rounded-xl text-sm font-medium text-surface-300 hover:text-white bg-surface-800 hover:bg-surface-700 border border-surface-700/60 transition-colors"
+                @click="showDeleteModal = false"
+                :disabled="deletingLabels"
+              >
+                Cancel
+              </button>
+
+              <button 
+                v-if="activeFilter"
+                class="px-4 py-2.5 rounded-xl text-sm font-medium bg-amber-950/80 hover:bg-amber-900/90 text-amber-200 border border-amber-800/80 transition-colors flex items-center justify-center gap-2"
+                @click="handleDeleteLabels(activeFilter)"
+                :disabled="deletingLabels"
+              >
+                <span>Delete '{{ activeFilter }}'</span>
+              </button>
+
+              <button 
+                class="px-4 py-2.5 rounded-xl text-sm font-medium bg-red-600 hover:bg-red-500 text-white border border-red-500 shadow-lg shadow-red-900/40 transition-colors flex items-center justify-center gap-2"
+                @click="handleDeleteLabels()"
+                :disabled="deletingLabels"
+              >
+                <svg v-if="deletingLabels" class="w-4 h-4 animate-spin text-white" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                </svg>
+                <span>{{ deletingLabels ? 'Deleting...' : 'Delete All Labels' }}</span>
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </main>
   </WavyBackground>
@@ -689,6 +845,49 @@ const scanLogs = ref<string[]>([])
 const scanProgress = ref({ current: 0, total: 0 })
 const results = ref<ScanResult[]>([])
 const scanSummary = ref<Record<string, number> | null>(null)
+
+// Label Deletion State
+const showDeleteModal = ref(false)
+const deletingLabels = ref(false)
+const deleteSuccessMsg = ref<string | null>(null)
+const deleteErrorMsg = ref<string | null>(null)
+
+async function handleDeleteLabels(labelName?: string) {
+  deletingLabels.value = true
+  deleteSuccessMsg.value = null
+  deleteErrorMsg.value = null
+  try {
+    const res = await api.deleteLabels(labelName)
+    if (res.status === 'success') {
+      deleteSuccessMsg.value = res.message || 'Labels successfully deleted from Gmail.'
+      
+      if (labelName) {
+        // Remove emails with the deleted label from local results
+        results.value = results.value.filter((r) => r.primary_label !== labelName)
+        if (activeFilter.value === labelName) activeFilter.value = ''
+        updateSummary()
+        if (results.value.length === 0) {
+          scanSummary.value = null
+          scanError.value = null
+        }
+      } else {
+        // All labels deleted — reset results to reveal the "Scan Gmail" initial state card
+        results.value = []
+        scanSummary.value = null
+        scanError.value = null
+        activeFilter.value = ''
+      }
+
+      showDeleteModal.value = false
+    } else {
+      deleteErrorMsg.value = 'Failed to delete labels.'
+    }
+  } catch (err: any) {
+    deleteErrorMsg.value = err.message || 'An error occurred while deleting labels.'
+  } finally {
+    deletingLabels.value = false
+  }
+}
 
 // UI
 const terminalEl = ref<HTMLElement | null>(null)
@@ -800,7 +999,7 @@ function startScan() {
   
   es.addEventListener('done', (e) => {
     const data = JSON.parse(e.data)
-    if (data.status === 'cancelled') scanError.value = 'Scan was cancelled.'
+    if (data.status === 'cancelled') scanError.value = 'Scanning stopped.'
     flushBatch() // Flush final items
     clearInterval(batchTimer)
     closeStream()

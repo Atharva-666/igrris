@@ -1,12 +1,12 @@
 """
-mailshield_api.py — FastAPI layer for MailShield AI.
+igrris_api.py — FastAPI layer for Igrris AI.
 
 Exposes the existing Gmail OAuth + ML scan pipeline over HTTP so that
 any frontend (Nuxt, React, mobile, CLI) can use it without touching the
 Python internals directly.
 
 Run from the project root:
-    uvicorn backend.mailshield_api:app --host 0.0.0.0 --port 8000 --reload
+    uvicorn backend.igrris_api:app --host 0.0.0.0 --port 8000 --reload
 
 Endpoints:
     GET  /health          — liveness probe
@@ -54,7 +54,7 @@ logger = logging.getLogger(__name__)
 # App bootstrap
 # ---------------------------------------------------------------------------
 app = FastAPI(
-    title="MailShield AI API",
+    title="Igrris AI API",
     description="Gmail security assistant — OAuth + ML scan pipeline.",
     version="2.0.0",
     docs_url="/docs",
@@ -115,6 +115,18 @@ class PredictRequest(BaseModel):
 class PredictResponse(BaseModel):
     label: str
     confidence: float
+
+
+class DeleteLabelsRequest(BaseModel):
+    label_name: str | None = Field(default=None, description="Optional specific label name to delete. If omitted, deletes all managed labels.")
+
+
+class DeleteLabelsResponse(BaseModel):
+    status: str
+    deleted: list[str]
+    failed: list[str]
+    skipped_system: list[str]
+    message: str
 
 
 # ---------------------------------------------------------------------------
@@ -302,3 +314,56 @@ async def predict_endpoint(request: PredictRequest):
         raise HTTPException(status_code=500, detail="Internal server error")
 
     return PredictResponse(**result)
+
+
+from backend.labels.manager import delete_all_managed_labels, delete_managed_label, _list_all_labels
+
+
+@app.get("/labels", tags=["labels"])
+async def get_labels():
+    """List all labels in the authenticated Gmail account."""
+    creds = load_credentials()
+    if not creds:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated.")
+    try:
+        creds = refresh_if_expired(creds)
+        service = get_gmail_service(creds)
+        labels_map = _list_all_labels(service)
+        return {"labels": labels_map}
+    except Exception as exc:
+        logger.exception("Failed to fetch labels")
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@app.post("/labels/delete", response_model=DeleteLabelsResponse, tags=["labels"])
+async def delete_labels_endpoint(request: DeleteLabelsRequest | None = None):
+    """
+    Delete managed Gmail labels (or a specific label).
+    """
+    creds = load_credentials()
+    if not creds:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated.")
+
+    try:
+        creds = refresh_if_expired(creds)
+        service = get_gmail_service(creds)
+    except Exception as exc:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=f"Authentication error: {exc}")
+
+    label_names = [request.label_name] if (request and request.label_name) else None
+
+    try:
+        result = delete_all_managed_labels(service, label_names=label_names)
+        count = len(result["deleted"])
+        msg = f"Successfully deleted {count} label(s)." if count > 0 else "No labels were deleted."
+        return DeleteLabelsResponse(
+            status="success",
+            deleted=result["deleted"],
+            failed=result["failed"],
+            skipped_system=result["skipped_system"],
+            message=msg,
+        )
+    except Exception as exc:
+        logger.exception("Failed to delete labels")
+        raise HTTPException(status_code=500, detail=f"Label deletion failed: {exc}")
+

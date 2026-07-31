@@ -1,1 +1,1 @@
-# MailShield AI backend package
+# Igrris AI backend package

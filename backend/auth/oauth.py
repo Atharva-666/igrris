@@ -1,5 +1,5 @@
 """
-oauth.py — Google OAuth 2.0 flow for MailShield AI.
+oauth.py — Google OAuth 2.0 flow for Igrris AI.
 
 Responsibilities:
   - Generate Google authorization URL

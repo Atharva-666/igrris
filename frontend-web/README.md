@@ -1,6 +1,6 @@
-# MailShield AI — Nuxt Frontend
+# Igrris AI — Nuxt Frontend
 
-Modern Nuxt 3/4 frontend for the MailShield AI Gmail security assistant.
+Modern Nuxt 3/4 frontend for the Igrris AI Gmail security assistant.
 
 ## Stack
 
@@ -16,7 +16,7 @@ Modern Nuxt 3/4 frontend for the MailShield AI Gmail security assistant.
 From the **project root**:
 
 ```bash
-venv\Scripts\uvicorn backend.mailshield_api:app --host 0.0.0.0 --port 8000 --reload
+venv\Scripts\uvicorn backend.igrris_api:app --host 0.0.0.0 --port 8000 --reload
 ```
 
 ### 2. Start the Nuxt dev server

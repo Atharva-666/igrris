@@ -1,9 +1,9 @@
 """
-logger.py — Centralized logging utility for MailShield AI.
+logger.py — Centralized logging utility for Igrris AI.
 
 Features:
   - Automatically creates the logs/ directory if it doesn't exist
-  - Configures RotatingFileHandler to write logs to logs/mailshield.log
+  - Configures RotatingFileHandler to write logs to logs/igrris.log
   - Limits file size to 5MB with 3 backup files (rotates automatically)
   - Also outputs logs to stdout/console
   - Provides get_recent_logs() to read logs for UI display
@@ -22,7 +22,7 @@ _DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
 
 def setup_logging(level=logging.INFO) -> None:
     """
-    Initialize logging handlers for stdout and logs/mailshield.log.
+    Initialize logging handlers for stdout and logs/igrris.log.
     Called on application startup.
     """
     os.makedirs(LOG_DIR, exist_ok=True)
@@ -59,7 +59,7 @@ def setup_logging(level=logging.INFO) -> None:
 
 def get_recent_logs(max_lines: int = 100) -> str:
     """
-    Read and return the last `max_lines` from logs/mailshield.log.
+    Read and return the last `max_lines` from logs/igrris.log.
     Returns a helpful message if the log file doesn't exist yet.
     """
     if not os.path.exists(LOG_FILE):

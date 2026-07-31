@@ -1,5 +1,5 @@
 # =============================================================================
-# rules_config.yaml — MailShield AI Label Rule Engine Configuration
+# rules_config.yaml — Igrris AI Label Rule Engine Configuration
 #
 # Edit this file to tune classification without touching any Python code.
 # All keyword matches are case-insensitive substring searches.

@@ -1,5 +1,5 @@
 """
-connector.py — Gmail API connector for MailShield AI.
+connector.py — Gmail API connector for Igrris AI.
 
 Responsibilities:
   - Build authenticated Gmail API service object

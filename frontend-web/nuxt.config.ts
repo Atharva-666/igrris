@@ -25,13 +25,13 @@ export default defineNuxtConfig({
       mode: 'out-in'
     },
     head: {
-      title: 'MailShield AI',
+      title: 'Igrris',
       meta: [
         { charset: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
         {
           name: 'description',
-          content: 'MailShield AI — Intelligent Gmail security assistant powered by machine learning.',
+          content: 'Igrris AI — Intelligent Gmail security assistant powered by machine learning.',
         },
       ],
       link: [

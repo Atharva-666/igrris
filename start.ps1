@@ -6,11 +6,11 @@ $rootDir = Split-Path $scriptPath
 
 Set-Location $rootDir
 
-Write-Host "Starting MailShield AI..." -ForegroundColor Cyan
+Write-Host "Starting Igrris AI..." -ForegroundColor Cyan
 
 # 1. Start the FastAPI Backend on port 8000 (Hidden/Background)
 Write-Host "Starting FastAPI backend on port 8000..." -ForegroundColor Green
-$backendProcess = Start-Process -FilePath "$rootDir\venv\Scripts\python.exe" -ArgumentList "-m", "uvicorn", "backend.mailshield_api:app", "--host", "0.0.0.0", "--port", "8000" -PassThru -WindowStyle Hidden
+$backendProcess = Start-Process -FilePath "$rootDir\venv\Scripts\python.exe" -ArgumentList "-m", "uvicorn", "backend.igrris_api:app", "--host", "0.0.0.0", "--port", "8000" -PassThru -WindowStyle Hidden
 
 # Give backend a moment to boot
 Start-Sleep -Seconds 3

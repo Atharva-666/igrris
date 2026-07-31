@@ -1,5 +1,5 @@
 """
-streamlit_app.py — MailShield AI Gmail Security Assistant
+streamlit_app.py — Igrris AI Gmail Security Assistant
 Anime-cyberpunk themed frontend built with Streamlit.
 
 Run from the project root:
@@ -38,7 +38,7 @@ if _ROOT not in sys.path:
 # Page config — MUST be the very first Streamlit call
 # ---------------------------------------------------------------------------
 st.set_page_config(
-    page_title="MailShield AI",
+    page_title="Igrris",
     page_icon="🛡️",
     layout="wide",
     initial_sidebar_state="collapsed",
@@ -764,7 +764,7 @@ with col_logo:
     st.markdown("""
     <div class="hero-wrapper">
         <div class="hero-eyebrow">// SYSTEM ONLINE · メールシールド AI · v2.0</div>
-        <div class="hero-title">🛡 MAILSHIELD AI</div>
+        <div class="hero-title">🛡 Igrris AI</div>
         <div class="hero-katakana">メール・セキュリティ・システム・起動完了</div>
         <div class="hero-subtitle">Gmail threat detection powered by <b>TF-IDF + LinearSVC</b></div>
     </div>
@@ -801,7 +801,7 @@ if st.session_state.credentials is None:
         <h2>CONNECT GMAIL</h2>
         <div class="katakana-sub">グーグル・認証・システム</div>
         <p>
-            Link your Google account to deploy MailShield AI on your inbox.
+            Link your Google account to deploy Igrris AI on your inbox.
             The system will scan, classify, and label all threats automatically.
         </p>
     </div>
@@ -1083,7 +1083,7 @@ elif not st.session_state.scanning:
 # ---------------------------------------------------------------------------
 st.markdown('<div class="neon-divider"></div>', unsafe_allow_html=True)
 
-with st.expander("📟 SYSTEM LOGS & AUDIT TRAIL (`logs/mailshield.log`)", expanded=False):
+with st.expander("📟 SYSTEM LOGS & AUDIT TRAIL (`logs/igrris.log`)", expanded=False):
     logs_content = get_recent_logs(max_lines=150)
     
     st.markdown("""
@@ -1100,9 +1100,9 @@ with st.expander("📟 SYSTEM LOGS & AUDIT TRAIL (`logs/mailshield.log`)", expan
             st.rerun()
     with col_dl:
         st.download_button(
-            label="💾 DOWNLOAD MAILSHIELD.LOG",
+            label="💾 DOWNLOAD Igrris.LOG",
             data=logs_content,
-            file_name="mailshield.log",
+            file_name="igrris.log",
             mime="text/plain",
             key="btn_download_logs",
         )

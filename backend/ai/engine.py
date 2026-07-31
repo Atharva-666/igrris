@@ -1,5 +1,5 @@
 """
-engine.py — AI classification engine for MailShield AI.
+engine.py — AI classification engine for Igrris AI.
 
 This module is a thin wrapper over the existing predict() function.
 

@@ -1,5 +1,5 @@
 """
-config.py — Central configuration for MailShield AI.
+config.py — Central configuration for Igrris AI.
 
 All secrets come from a .env file. Copy .env.example → .env and fill in values.
 Never commit .env to version control.
@@ -43,7 +43,7 @@ SCOPES: list[str] = [
 TOKEN_FILE: str = os.path.join(_ROOT, "token.json")
 OAUTH_STATE_FILE: str = os.path.join(_ROOT, ".oauth_state")
 LOG_DIR: str = os.path.join(_ROOT, "logs")
-LOG_FILE: str = os.path.join(LOG_DIR, "mailshield.log")
+LOG_FILE: str = os.path.join(LOG_DIR, "igrris.log")
 
 # Path to the rule engine YAML config
 RULES_CONFIG_FILE: str = os.path.join(_ROOT, "backend", "classifier", "rules_config.yaml")

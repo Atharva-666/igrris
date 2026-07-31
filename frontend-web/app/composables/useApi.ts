@@ -36,6 +36,14 @@ export interface AuthStatus {
   name?: string | null
 }
 
+export interface DeleteLabelsResponse {
+  status: string
+  deleted: string[]
+  failed: string[]
+  skipped_system: string[]
+  message: string
+}
+
 export function useApi() {
   const config = useRuntimeConfig()
   const base = config.public.apiBase as string
@@ -96,6 +104,19 @@ export function useApi() {
     })
   }
 
+  /** Fetch Gmail labels */
+  function getLabels() {
+    return apiFetch<{ labels: Record<string, string> }>('/labels')
+  }
+
+  /** Delete managed labels from Gmail */
+  function deleteLabels(labelName?: string) {
+    return apiFetch<DeleteLabelsResponse>('/labels/delete', {
+      method: 'POST',
+      body: JSON.stringify(labelName ? { label_name: labelName } : {}),
+    })
+  }
+
   return {
     getAuthStatus,
     getAuthUrl,
@@ -104,5 +125,7 @@ export function useApi() {
     createScanStream,
     stopScan,
     predictMessage,
+    getLabels,
+    deleteLabels,
   }
 }

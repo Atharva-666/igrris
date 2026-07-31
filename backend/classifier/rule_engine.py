@@ -1,5 +1,5 @@
 """
-rule_engine.py — Layer 2 rule-based email classifier for MailShield AI.
+rule_engine.py — Layer 2 rule-based email classifier for Igrris AI.
 
 This module runs AFTER the TF-IDF + LinearSVC model (Layer 1) and applies
 category-specific rules to produce a more granular label.

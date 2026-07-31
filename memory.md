@@ -1,4 +1,4 @@
-# MailShield AI — Project Memory
+# Igrris AI — Project Memory
 
 ## Architecture
 
@@ -18,7 +18,7 @@ Google OAuth (accounts.google.com)
 FastAPI Backend (port 8000)
       │
       ▼
-MailShield ML Backend (TF-IDF + LinearSVC)
+Igrris ML Backend (TF-IDF + LinearSVC)
 ```
 
 ## URL Structure
@@ -45,7 +45,7 @@ MailShield ML Backend (TF-IDF + LinearSVC)
 
 - Scan uses `GET /scan/stream?scan_id=...` (Server-Sent Events)
 - Stop scan uses `POST /scan/stop/{scan_id}`
-- `active_scans` dict in `mailshield_api.py` maps `scan_id → threading.Event`
+- `active_scans` dict in `igrris_api.py` maps `scan_id → threading.Event`
 - Backend yields events with types: `log`, `progress`, `start`, `result`, `done`, `error`
 
 ## Key Files
@@ -53,7 +53,7 @@ MailShield ML Backend (TF-IDF + LinearSVC)
 | File                                      | Purpose                                                     |
 | ----------------------------------------- | ----------------------------------------------------------- |
 | `backend/config.py`                       | All config including `REDIRECT_URI`                         |
-| `backend/mailshield_api.py`               | FastAPI routes including SSE scan stream                    |
+| `backend/igrris_api.py`               | FastAPI routes including SSE scan stream                    |
 | `backend/services/scan_service.py`        | ML scanning logic, yields SSE events                        |
 | `backend/auth/oauth.py`                   | Google OAuth flow (get URL, exchange code, refresh, revoke) |
 | `frontend-web/app/pages/index.vue`        | Landing page & Scan Dashboard (Merged)                      |
@@ -127,7 +127,20 @@ Script starts:
 - Acts as a pre-filter before the ML model inside scan_service.py (_process_single_email).
 - Uses config.json for block severity (critical, high).
 - Downloads, parses and caches threat feeds into Python sets.
-- Starts automatically at FastAPI startup (mailshield_api.py).
+- Starts automatically at FastAPI startup (igrris_api.py).
+- Does not modify existing ML logic (predict.py, models).
+
+
+## Detection Architecture
+
+
+
+## Enterprise Threat Intelligence Layer (Added 2026-07-30)
+- Added  ackend/threat_intelligence module.
+- Acts as a pre-filter before the ML model inside scan_service.py (_process_single_email).
+- Uses config.json for block severity (critical, high).
+- Downloads, parses and caches threat feeds into Python sets.
+- Starts automatically at FastAPI startup (igrris_api.py).
 - Does not modify existing ML logic (predict.py, models).
 
 
@@ -143,3 +156,24 @@ Script starts:
 - TF-IDF
 - LinearSVC
 - Unknown pattern detection
+
+## Gmail Label Management & Deletion Feature (Added 2026-07-31)
+- Added `delete_managed_label` and `delete_all_managed_labels` functions in `backend/labels/manager.py`.
+- Exposed `POST /labels/delete` and `GET /labels` endpoints in `backend/igrris_api.py`.
+- Added `deleteLabels` and `getLabels` composable methods in `frontend-web/app/composables/useApi.ts`.
+- Integrated "Delete Labels" button and dark glassmorphic confirmation modal with active filter support in `frontend-web/app/pages/index.vue`.
+- Protected built-in Gmail system labels (e.g. `SPAM`) from deletion while safely removing custom Igrris labels.
+- Added comprehensive unit tests in `tests/test_labels.py`.
+
+## Header Logo Encrypted Text Effect (Added 2026-07-31)
+- Created `frontend-web/app/components/EncryptedText.vue` for cyber text scramble animation.
+- Applied `EncryptedText` component strictly to the top-left header logo brand text "Igrris" in `frontend-web/app/pages/index.vue`.
+- Configured a slow readable scramble animation (~70ms frame tick) that decrypts to "Igrris", holds clear text for 3 seconds (`interval: 3000`), and loops continuously.
+- Set scrambled/encrypted text and logo glow color to brand indigo (`text-brand-400` with `drop-shadow-[0_0_10px_rgba(129,140,248,0.85)]`).
+- Increased font size of "Igrris" logo text exclusively to `text-3xl sm:text-4xl font-black` in `frontend-web/app/pages/index.vue`.
+
+
+
+
+
+

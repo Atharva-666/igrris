@@ -1,5 +1,5 @@
 """
-manager.py — Gmail Label Manager for MailShield AI.
+manager.py — Gmail Label Manager for Igrris AI.
 
 Responsibilities:
   - List all existing labels in the Gmail account
@@ -137,6 +137,81 @@ def apply_label(
     except HttpError as e:
         logger.error("Failed to apply label to message %s: %s", msg_id, e)
         return False
+
+
+def delete_managed_label(service, label_name: str) -> bool:
+    """
+    Delete a single managed Gmail label by name.
+
+    System labels (like 'Spam' -> 'SPAM') cannot be deleted via Gmail API and are skipped.
+    """
+    if label_name in _SYSTEM_LABEL_ALIASES:
+        logger.info("Label '%s' is mapped to a Gmail system label and cannot be deleted.", label_name)
+        return False
+
+    existing = _list_all_labels(service)
+    label_id = existing.get(label_name)
+
+    if not label_id:
+        logger.info("Label '%s' does not exist in Gmail account.", label_name)
+        return True
+
+    try:
+        service.users().labels().delete(userId="me", id=label_id).execute()
+        logger.info("Deleted Gmail label '%s' (id=%s).", label_name, label_id)
+        return True
+    except HttpError as e:
+        logger.error("Failed to delete Gmail label '%s' (id=%s): %s", label_name, label_id, e)
+        return False
+
+
+def delete_all_managed_labels(service, label_names: list[str] | None = None) -> dict[str, list[str]]:
+    """
+    Delete managed labels from the Gmail account.
+
+    Parameters
+    ----------
+    service : Gmail API service object
+    label_names : list[str] | None
+        Specific label names to delete. If None or empty, targets all configured LABELS.
+
+    Returns
+    -------
+    dict[str, list[str]]
+        Summary dictionary containing:
+        - 'deleted': list of deleted label names
+        - 'failed': list of label names where deletion failed
+        - 'skipped_system': list of system label names that were skipped
+    """
+    targets = label_names if label_names else list(LABELS.keys())
+    existing = _list_all_labels(service)
+
+    deleted: list[str] = []
+    failed: list[str] = []
+    skipped_system: list[str] = []
+
+    for name in targets:
+        if name in _SYSTEM_LABEL_ALIASES:
+            skipped_system.append(name)
+            continue
+
+        label_id = existing.get(name)
+        if not label_id:
+            continue
+
+        try:
+            service.users().labels().delete(userId="me", id=label_id).execute()
+            logger.info("Deleted Gmail label '%s' (id=%s).", name, label_id)
+            deleted.append(name)
+        except HttpError as e:
+            logger.error("Failed to delete label '%s': %s", name, e)
+            failed.append(name)
+
+    return {
+        "deleted": deleted,
+        "failed": failed,
+        "skipped_system": skipped_system,
+    }
 
 
 # ---------------------------------------------------------------------------
