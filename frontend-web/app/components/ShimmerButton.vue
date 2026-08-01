@@ -53,7 +53,7 @@ interface Props {
   borderRadius?: string;
   shimmerDuration?: string;
   background?: string;
-  class?: string;
+  class?: any;
 }
 
 withDefaults(defineProps<Props>(), {

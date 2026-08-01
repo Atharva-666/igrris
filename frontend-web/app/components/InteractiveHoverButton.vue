@@ -28,7 +28,7 @@
 <script setup lang="ts">
 interface Props {
   text?: string;
-  class?: string;
+  class?: any;
   bgClass?: string;
   textHoverClass?: string;
 }

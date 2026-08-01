@@ -1,14 +1,14 @@
 <template>
   <span 
-    :class="[props.class, 'inline-block select-none font-mono transition-colors duration-300']"
+    :class="[props.class, 'igris-text inline-block select-none transition-colors duration-300']"
     @mouseenter="triggerManualScramble"
   >
     <span 
       v-for="(char, index) in displayText" 
       :key="index"
       :class="{
-        'text-red-500 font-semibold opacity-90 drop-shadow-[0_0_10px_rgba(239,68,68,0.85)]': isScrambled(index),
-        'text-white': !isScrambled(index)
+        'scrambled-char': isScrambled(index),
+        'igris-letter': !isScrambled(index)
       }"
       class="transition-all duration-150 inline-block"
     >
@@ -24,7 +24,7 @@ const props = withDefaults(defineProps<{
   text?: string
   interval?: number       // Pause time in ms after decryption before next scramble (3000ms = 3s)
   scrambleSpeed?: number  // Delay in ms per animation tick (slow readable pacing)
-  class?: string
+  class?: any
   characters?: string
 }>(), {
   text: 'Igrris',
@@ -45,7 +45,7 @@ const isScrambled = (index: number) => !revealedIndices.value.has(index)
 
 function getRandomChar(): string {
   const chars = props.characters
-  return chars[Math.floor(Math.random() * chars.length)]
+  return chars.charAt(Math.floor(Math.random() * chars.length))
 }
 
 function startScrambleAnimation() {
@@ -121,3 +121,28 @@ onUnmounted(() => {
   if (loopTimeout) clearTimeout(loopTimeout)
 })
 </script>
+
+<style scoped>
+.igris-text {
+  font-family: 'Noto Sans Math', math, sans-serif;
+  font-weight: 700;
+  font-style: normal;
+  letter-spacing: 6px;
+}
+
+.scrambled-char {
+  color: #ef4444;
+  font-family: monospace;
+  font-weight: 700;
+  font-style: normal;
+  opacity: 0.95;
+  filter: drop-shadow(0 0 10px rgba(239, 68, 68, 0.95));
+}
+
+.igris-letter {
+  font-family: 'Noto Sans Math', math, sans-serif;
+  font-weight: 700;
+  font-style: normal;
+  display: inline-block;
+}
+</style>

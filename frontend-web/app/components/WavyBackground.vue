@@ -23,12 +23,12 @@ interface Props {
   backgroundFill?: string;
   colors?: string[];
   containerClass?: string;
-  class?: string;
+  class?: any;
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  waveWidth: 100,
-  blur: 23,
+  waveWidth: 110,
+  blur: 30,
   speed: 'fast',
   waveOpacity: 0.45,
   backgroundFill: 'black',
@@ -98,7 +98,7 @@ const draw = () => {
   for (let i = 0; i < totalColors; i++) {
     ctx.beginPath();
     ctx.lineWidth = props.waveWidth;
-    ctx.strokeStyle = props.colors[i % totalColors];
+    ctx.strokeStyle = props.colors[i % totalColors] ?? '#ffffff';
     
     // Distinct per-line frequencies & phase for scattered crossover effect
     const freq1 = 0.0012 + i * 0.0004;
