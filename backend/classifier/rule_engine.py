@@ -211,6 +211,16 @@ def _check_work(subject: str, body: str, sender: str, cfg: dict) -> str | None:
     return None
 
 
+def _check_personal(subject: str, body: str, sender: str, cfg: dict) -> str | None:
+    per = cfg.get("personal", {})
+
+    domain = _domain_in_list(sender, per.get("personal_domains", []))
+    if domain:
+        return f"personal_domain:{domain}"
+
+    return None
+
+
 # ---------------------------------------------------------------------------
 # Rule dispatcher
 # ---------------------------------------------------------------------------
@@ -223,6 +233,7 @@ _RULE_CHECKERS: dict[str, Any] = {
     "Promotions": _check_promotions,
     "Education":  _check_education,
     "Work":       _check_work,
+    "Personal":   _check_personal,
 }
 
 

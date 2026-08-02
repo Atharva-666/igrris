@@ -1204,6 +1204,25 @@ work:
     - railway.app
 
 # ---------------------------------------------------------------------------
+# PERSONAL rules
+# ---------------------------------------------------------------------------
+personal:
+  personal_domains:
+    - gmail.com
+    - yahoo.com
+    - yahoo.in
+    - hotmail.com
+    - outlook.com
+    - icloud.com
+    - aol.com
+    - proton.me
+    - protonmail.com
+    - mail.com
+    - ymail.com
+    - live.com
+    - msn.com
+
+# ---------------------------------------------------------------------------
 # Multi-label secondary pairing rules
 # ---------------------------------------------------------------------------
 secondary_label_pairs:

@@ -86,7 +86,10 @@ LABELS: dict[str, dict] = {
 AI_LABELS = LABELS
 
 # ---------------------------------------------------------------------------
-# SECURITY NOTE (local development only)
-# Allow OAuth flow over plain HTTP. In production, use HTTPS and remove this.
+# SECURITY NOTE
+# OAUTHLIB_INSECURE_TRANSPORT allows OAuth over plain HTTP.
+# Only enabled when DEBUG=true (local development). Never set in production.
+# Railway serves over HTTPS so this flag must be absent there.
 # ---------------------------------------------------------------------------
-os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
+if os.environ.get("DEBUG", "false").lower() == "true":
+    os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"

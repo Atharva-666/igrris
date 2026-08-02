@@ -20,6 +20,7 @@ Security notes:
 import json
 import logging
 import os
+import datetime
 
 import requests
 from google.auth.transport.requests import Request
@@ -171,6 +172,7 @@ def save_credentials(credentials: Credentials) -> None:
         "client_id": credentials.client_id,
         "client_secret": credentials.client_secret,
         "scopes": list(credentials.scopes) if credentials.scopes else [],
+        "expiry": credentials.expiry.isoformat() if credentials.expiry else None,
     }
     with open(TOKEN_FILE, "w") as f:
         json.dump(data, f, indent=2)
@@ -189,6 +191,9 @@ def load_credentials() -> Credentials | None:
         with open(TOKEN_FILE, "r") as f:
             data = json.load(f)
 
+        expiry_str = data.get("expiry")
+        expiry = datetime.datetime.fromisoformat(expiry_str) if expiry_str else None
+
         credentials = Credentials(
             token=data.get("token"),
             refresh_token=data.get("refresh_token"),
@@ -196,6 +201,7 @@ def load_credentials() -> Credentials | None:
             client_id=data.get("client_id"),
             client_secret=data.get("client_secret"),
             scopes=data.get("scopes"),
+            expiry=expiry,
         )
         logger.info("Credentials loaded from disk.")
         return credentials

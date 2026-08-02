@@ -21,8 +21,8 @@ import logging
 import sys
 import os
 
-# Allow HTTP for local OAuth development
-os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
+# Note: OAUTHLIB_INSECURE_TRANSPORT is handled conditionally in backend/config.py
+# (only set when DEBUG=true, never in production)
 
 # ---------------------------------------------------------------------------
 # Path setup so this module can be run from the project root with uvicorn
@@ -67,11 +67,18 @@ async def startup_event():
     init_threat_intelligence()
 
 
-# Allow the Nuxt dev server (port 3000) and any other local origin.
-# In production replace ["*"] with your actual frontend domain.
+# CORS — reads from ALLOWED_ORIGINS env var in production (Railway).
+# Set ALLOWED_ORIGINS=https://your-app.vercel.app on Railway.
+# Falls back to localhost origins for local development.
+_raw_origins = os.environ.get(
+    "ALLOWED_ORIGINS",
+    "http://localhost:3000,http://127.0.0.1:3000,http://localhost:8501,http://127.0.0.1:8501"
+)
+_allowed_origins = [o.strip() for o in _raw_origins.split(",") if o.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_origins=_allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

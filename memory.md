@@ -53,13 +53,17 @@ Igrris ML Backend (TF-IDF + LinearSVC)
 | File                                      | Purpose                                                     |
 | ----------------------------------------- | ----------------------------------------------------------- |
 | `backend/config.py`                       | All config including `REDIRECT_URI`                         |
-| `backend/igrris_api.py`               | FastAPI routes including SSE scan stream                    |
+| `backend/igrris_api.py`                   | FastAPI routes including SSE scan stream & Label APIs       |
 | `backend/services/scan_service.py`        | ML scanning logic, yields SSE events                        |
 | `backend/auth/oauth.py`                   | Google OAuth flow (get URL, exchange code, refresh, revoke) |
+| `backend/labels/manager.py`               | Gmail Managed label creation and deletion logic             |
 | `frontend-web/app/pages/index.vue`        | Landing page & Scan Dashboard (Merged)                      |
 | `frontend-web/app/pages/login.vue`        | OAuth callback catcher                                      |
+| `frontend-web/app/components/EncryptedText.vue` | Cyber text encryption scramble component for header brand |
 | `frontend-web/app/composables/useApi.ts`  | All API calls                                               |
 | `frontend-web/app/composables/useAuth.ts` | Auth state, login(), logout()                               |
+| `requirements.txt`                        | Python backend dependencies manifest                        |
+| `old-code-files/`                         | Archive of legacy root-level scripts no longer used in the active project (api.py, app.py, predict.py, train.py, data_preprocessing.py, sms-spam-detection.ipynb, spam.csv, etc.) |
 
 ## Startup
 
@@ -69,7 +73,6 @@ Igrris ML Backend (TF-IDF + LinearSVC)
 ```
 
 Script starts:
-
 1. FastAPI backend on port 8000 (hidden background process)
 2. Nuxt frontend on port 8501 (foreground — Ctrl+C to stop both)
 
@@ -89,61 +92,6 @@ Script starts:
 | Personal     | Gray       | From known contacts                     |
 | Trusted      | Green      | Verified safe senders                   |
 
-## Common Pitfalls
-
-- **"Connection to server lost" during scan**: The backend process might be a zombie from a previous session. Run `Stop-Process -Name python -Force` before restarting.
-- **"/login 404"**: `REDIRECT_URI` in config.py doesn't include `/login` suffix, or `login.vue` was accidentally deleted.
-- **"Scope has changed" error**: Make sure `openid` is in the requested scopes list inside `backend/config.py` along with email, profile, etc.
-- **"circles around itself"**: `index.vue` was also handling `?code=` OAuth callback — only `login.vue` should do this.
-- **Labels cut off in table**: Ensure the dashboard container has a wider max-width (e.g. `1600px` or `95%`) and `whitespace-nowrap` on `td`.
-
-## Inspira UI & Animation Architecture
-
-- **`useMotionPresets.ts`**: Centralized composable providing `fadeUp`, `scaleIn`, and `hoverLift` spring animation presets.
-- **`lenis.client.ts`**: Desktop-only smooth scroll initialization using `@studio-freight/lenis`.
-- **SSE Item Batching**: In `index.vue` (dashboard section), fast SSE `result` stream events are queued into `resultBatchQueue` and flushed every 100ms.
-- **Global `WavyBackground.vue`**: High-end interactive canvas hero background applied **globally** in `app.vue`.
-
-## UI & Component Map (Where to find what)
-
-**Layout & Main Sections (`frontend-web/app/pages/index.vue`)**:
-- **Header (`<header>`)**: Seamless floating navbar (`bg-transparent border-none py-6`) with no dark background bar, allowing background waves to flow cleanly through to the top edge behind the brand logo and profile controls.
-- **Hero Section (`id="hero"`)**: The main title "Secure Your Inbox" with the large CTA button that auto-scrolls to the dashboard or logs the user in.
-- **Features Grid (`id="features"`)**: 3-column grid explaining Core Engine, Action, and Live Processing.
-- **Pipeline Flow (`id="how-it-works"`)**: The 4-step vertical timeline featuring IDE window cards with top bar dots, glassmorphic backdrop, and custom code syntax highlighting.
-- **Dashboard Section (`id="dashboard"`)**: Conditionally rendered (`v-if="authenticated"`) at the bottom of the page. Contains the live scanning terminal and the max 1600px wide scan results table.
-
-**Reusable Components (`frontend-web/app/components/`)**:
-- **`InteractiveHoverButton.vue`**: Fluid buttons used for "Secure Your Inbox", Header actions, and Dashboard controls. Features an expanding background circle and slide-in arrow.
-- **`ScanStats.vue`**: Component used in the dashboard header to display counters (Total, Spam, Phishing, Clean).
-- **`LabelBadge.vue`**: Colored pill badges used in the dashboard results table to display the ML prediction category.
-- **`WavyBackground.vue`**: The animated canvas background rendered globally (uses `fixed inset-0` with bounded sinusoidal Y-parallax to keep waves centered in viewport at all scroll depths including page bottom, `waveWidth: 100`, `blur: 23`).
-
-
-
-
-## Enterprise Threat Intelligence Layer (Added 2026-07-30)
-- Added ackend/threat_intelligence module.
-- Acts as a pre-filter before the ML model inside scan_service.py (_process_single_email).
-- Uses config.json for block severity (critical, high).
-- Downloads, parses and caches threat feeds into Python sets.
-- Starts automatically at FastAPI startup (igrris_api.py).
-- Does not modify existing ML logic (predict.py, models).
-
-
-## Detection Architecture
-
-
-
-## Enterprise Threat Intelligence Layer (Added 2026-07-30)
-- Added  ackend/threat_intelligence module.
-- Acts as a pre-filter before the ML model inside scan_service.py (_process_single_email).
-- Uses config.json for block severity (critical, high).
-- Downloads, parses and caches threat feeds into Python sets.
-- Starts automatically at FastAPI startup (igrris_api.py).
-- Does not modify existing ML logic (predict.py, models).
-
-
 ## Detection Architecture
 
 ### Layer 1: Threat Intelligence
@@ -157,23 +105,91 @@ Script starts:
 - LinearSVC
 - Unknown pattern detection
 
-## Gmail Label Management & Deletion Feature (Added 2026-07-31)
-- Added `delete_managed_label` and `delete_all_managed_labels` functions in `backend/labels/manager.py`.
-- Exposed `POST /labels/delete` and `GET /labels` endpoints in `backend/igrris_api.py`.
-- Added `deleteLabels` and `getLabels` composable methods in `frontend-web/app/composables/useApi.ts`.
-- Integrated "Delete Labels" button and dark glassmorphic confirmation modal with active filter support in `frontend-web/app/pages/index.vue`.
-- Protected built-in Gmail system labels (e.g. `SPAM`) from deletion while safely removing custom Igrris labels.
+## Inspira UI & Animation Architecture
+
+- **`useMotionPresets.ts`**: Centralized composable providing `fadeUp`, `scaleIn`, and `hoverLift` spring animation presets.
+- **`lenis.client.ts`**: Desktop-only smooth scroll initialization using `@studio-freight/lenis`.
+- **SSE Item Batching**: In `index.vue` (dashboard section), fast SSE `result` stream events are queued into `resultBatchQueue` and flushed every 100ms.
+- **Global `WavyBackground.vue`**: High-end interactive canvas hero background applied **globally** in `app.vue`.
+
+---
+
+## Session Change Log (2026-07-31)
+
+### 1. Gmail Label Management & Deletion System
+- Implemented `delete_managed_label` and `delete_all_managed_labels` in `backend/labels/manager.py`.
+- Created FastAPI endpoints `POST /labels/delete` and `GET /labels` in `backend/igrris_api.py`.
+- Added `deleteLabels` and `getLabels` functions in `frontend-web/app/composables/useApi.ts`.
+- Built dark glassmorphic label deletion modal in `frontend-web/app/pages/index.vue` with individual and batch label deletion support.
+- System safeguards: System labels (`INBOX`, `SPAM`, `TRASH`) protected against accidental deletion; only custom managed labels are removed.
 - Added comprehensive unit tests in `tests/test_labels.py`.
 
-## Header Logo Encrypted Text Effect (Added 2026-07-31)
-- Created `frontend-web/app/components/EncryptedText.vue` for cyber text scramble animation.
-- Applied `EncryptedText` component strictly to the top-left header logo brand text "Igrris" in `frontend-web/app/pages/index.vue`.
-- Configured a slow readable scramble animation (~70ms frame tick) that decrypts to "Igrris", holds clear text for 3 seconds (`interval: 3000`), and loops continuously.
-- Set scrambled/encrypted text and logo glow color to brand indigo (`text-brand-400` with `drop-shadow-[0_0_10px_rgba(129,140,248,0.85)]`).
-- Increased font size of "Igrris" logo text exclusively to `text-3xl sm:text-4xl font-black` in `frontend-web/app/pages/index.vue`.
+### 2. Header Brand Encrypted Text Scramble Component
+- Created reusable component `frontend-web/app/components/EncryptedText.vue`.
+- Features cyber text cipher animation (~70ms frame tick) that decrypts to `"Igrris"`, holds clear text for 3 seconds (`:interval="3000"`), and repeats continuously.
+- Integrated `<EncryptedText>` exclusively for the top-left header navbar brand title in `frontend-web/app/pages/index.vue`.
+- Added hover trigger so hovering over the brand logo text initiates a scramble cycle.
 
+### 3. Shadow Monarch Helmet Shield Logo & Transparent Header Layout
+- Integrated custom logo asset `photos/logo2-bg-removed.png` as `/logo.png` in `frontend-web/public/logo.png`.
+- Updated logo container in `index.vue` to be completely transparent (`bg-transparent border-0 p-0 shadow-none`).
+- Fine-tuned header brand layout sizing (`w-20 h-20` emblem box with `text-xl sm:text-2xl font-black` title text) for clean visual alignment.
 
+### 4. Pip Dependencies Manifest (`requirements.txt`)
+- Updated root `requirements.txt` to lock all backend required dependencies:
+  - `scikit-learn`, `pandas`, `nltk`, `numpy` (ML & NLP)
+  - `fastapi`, `uvicorn`, `pydantic` (Backend REST API)
+  - `google-auth`, `google-auth-oauthlib`, `google-api-python-client` (OAuth & Gmail API)
+  - `Pillow` (Image & logo transparency processing)
+  - `pytest`, `httpx` (Testing & async HTTP)
 
+### 5. Canvas strokeStyle Type Check Fix (`WavyBackground.vue`)
+- Fixed TypeScript type mismatch `string | undefined` is not assignable to `string | CanvasGradient | CanvasPattern` on line 101 of `frontend-web/app/components/WavyBackground.vue`.
+- Added nullish coalescing fallback `?? '#ffffff'` for `props.colors[i % totalColors]` array index access to satisfy strict TypeScript array indexing rules (`noUncheckedIndexedAccess`).
 
+### 6. EncryptedText TypeScript Type Check Fix (`EncryptedText.vue`)
+- Fixed TypeScript type error `Type 'string | undefined' is not assignable to type 'string'` on line 48 of [EncryptedText.vue](file:///c:/Users/VICTUS/OneDrive/Attachments/Desktop/igrris/frontend-web/app/components/EncryptedText.vue).
+- Replaced string bracket index lookup `chars[index]` with `chars.charAt(index)` which strictly returns `string`, satisfying TypeScript's return type signature for `getRandomChar(): string`.
 
+### 7. SSE EventSource MessageEvent Type Check Fix (`index.vue`)
+- Fixed TypeScript type error `Property 'data' does not exist on type 'Event'` on lines 979-1016 of [index.vue](file:///c:/Users/VICTUS/OneDrive/Attachments/Desktop/igrris/frontend-web/app/pages/index.vue).
+- Added explicit type casting `(e as MessageEvent)` for all EventSource event listeners (`log`, `progress`, `start`, `result`, `done`, `error`), resolving `Property 'data' does not exist on type 'Event'` DOM event type mismatch in TypeScript.
 
+### 8. Vue Component `class` Prop Binding Type Check Fix (`InteractiveHoverButton.vue`, `ShimmerButton.vue`, `WavyBackground.vue`, `EncryptedText.vue`)
+- Fixed TypeScript error `Type '{ 'opacity-50 cursor-not-allowed': boolean; }' is not assignable to type 'string'` when passing object/array class bindings to `<InteractiveHoverButton>` in [index.vue](file:///c:/Users/VICTUS/OneDrive/Attachments/Desktop/igrris/frontend-web/app/pages/index.vue#L190-L196).
+- Updated `class?: string` to `class?: any` across UI components so Vue's object (`:class="{ key: val }"`) and array class bindings are supported without type checking errors.
+
+### 9. Solo Leveling Metallic Igris Typography (`EncryptedText.vue`)
+- Resolved Chromium WebKit `background-clip: text` rendering bug in [EncryptedText.vue](file:///c:/Users/VICTUS/OneDrive/Attachments/Desktop/igrris/frontend-web/app/components/EncryptedText.vue):
+  - **Chromium Rendering Fix**: Replaced inline `text-shadow` with `filter: drop-shadow(...)`.
+  - **6-Stop High-Contrast Steel Armor Gradient**: `linear-gradient(180deg, #ffffff 0%, #e4e4e7 18%, #71717a 38%, #18181b 52%, #a1a1aa 72%, #ffffff 88%, #3f3f46 100%)`.
+  - **Outer Dark Bevel & Red Aura**: Multi-layer `filter: drop-shadow(...)` preserves gradient visibility with dark armor drop-shadows and red eye energy glow.
+
+---
+
+## Session Change Log (2026-08-02)
+
+### 10. Deployment: Vercel (Frontend) + Railway (Backend)
+
+- **`railway.toml`** (NEW): Nixpacks build + start command `uvicorn backend.igrris_api:app --host 0.0.0.0 --port $PORT` + healthcheck `/health`.
+- **`backend/config.py`**: `OAUTHLIB_INSECURE_TRANSPORT` now only set when `DEBUG=true`. Safe for production Railway (HTTPS).
+- **`backend/igrris_api.py`**: CORS `allow_origins` now reads from `ALLOWED_ORIGINS` env var (comma-separated). Falls back to localhost for dev.
+- **`frontend-web/nuxt.config.ts`**: Added `googleClientId` to `runtimeConfig.public` — maps to `NUXT_PUBLIC_GOOGLE_CLIENT_ID` env var.
+- **`.env.example`** (root): Documents all backend prod env vars (`GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `REDIRECT_URI`, `ALLOWED_ORIGINS`, `DEBUG`).
+- **`frontend-web/.env.example`**: Documents `NUXT_PUBLIC_API_BASE` and `NUXT_PUBLIC_GOOGLE_CLIENT_ID`.
+- **`.env`** (local): Added `ALLOWED_ORIGINS` for localhost and `DEBUG=true` so local dev still works.
+
+### Deployment Environment Variables
+
+| Platform | Variable | Value |
+|---|---|---|
+| Vercel | `NUXT_PUBLIC_API_BASE` | `https://your-api.up.railway.app` |
+| Vercel | `NUXT_PUBLIC_GOOGLE_CLIENT_ID` | Google OAuth Client ID |
+| Railway | `GOOGLE_CLIENT_ID` | Google OAuth Client ID |
+| Railway | `GOOGLE_CLIENT_SECRET` | Google OAuth Client Secret |
+| Railway | `REDIRECT_URI` | `https://your-app.vercel.app/login` |
+| Railway | `ALLOWED_ORIGINS` | `https://your-app.vercel.app` |
+
+### Google Cloud Console — Required URI
+Add `https://your-app.vercel.app/login` to:
+> Credentials → OAuth 2.0 Client → Authorized Redirect URIs
