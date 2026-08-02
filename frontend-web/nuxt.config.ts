@@ -56,9 +56,12 @@ export default defineNuxtConfig({
   },
 
   // Runtime config — public values are exposed to the browser
+  // NUXT_PUBLIC_API_BASE      → set on Vercel to https://your-api.up.railway.app
+  // NUXT_PUBLIC_GOOGLE_CLIENT_ID → set on Vercel to your Google OAuth Client ID
   runtimeConfig: {
     public: {
       apiBase: process.env.NUXT_PUBLIC_API_BASE ?? '/api',
+      googleClientId: process.env.NUXT_PUBLIC_GOOGLE_CLIENT_ID ?? '',
     },
   },
 })
