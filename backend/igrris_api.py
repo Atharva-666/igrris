@@ -33,6 +33,7 @@ if _ROOT not in sys.path:
 
 from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import RedirectResponse
 from pydantic import BaseModel, Field
 
 from backend.auth.oauth import (
@@ -139,6 +140,12 @@ class DeleteLabelsResponse(BaseModel):
 # ---------------------------------------------------------------------------
 # Endpoints
 # ---------------------------------------------------------------------------
+
+@app.get("/", include_in_schema=False)
+async def root():
+    """Redirect root to API docs."""
+    return RedirectResponse(url="/docs")
+
 
 @app.get("/health", response_model=HealthResponse, tags=["system"])
 async def health() -> HealthResponse:
