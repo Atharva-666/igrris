@@ -50,9 +50,13 @@ export default defineNuxtConfig({
     },
   },
 
-  // Proxy API requests to the FastAPI server
+  // Proxy API requests to the FastAPI server.
+  // BACKEND_URL must be set on Vercel to https://igrris.up.railway.app
+  // Falls back to localhost:8000 for local dev (start.ps1 runs backend there).
   routeRules: {
-    '/api/**': { proxy: 'http://localhost:8000/**' },
+    '/api/**': {
+      proxy: `${process.env.BACKEND_URL ?? 'http://localhost:8000'}/**`,
+    },
   },
 
   // Runtime config — public values are exposed to the browser
