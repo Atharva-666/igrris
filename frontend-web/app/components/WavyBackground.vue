@@ -1,5 +1,5 @@
 <template>
-  <div :class="['relative min-h-screen w-full overflow-hidden flex flex-col', containerClass]">
+  <div :class="['relative min-h-screen w-full flex flex-col', containerClass]">
     <canvas 
       class="fixed inset-0 z-0 w-full h-full pointer-events-none"
       id="canvas"

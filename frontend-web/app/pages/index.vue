@@ -1,20 +1,20 @@
 <template>
   <WavyBackground>
-    <main class="relative text-surface-100 overflow-hidden min-h-screen flex flex-col">
+    <main class="relative text-surface-100 min-h-screen flex flex-col">
 
       <!-- Seamless Floating Header (No dark bar cutting off waves) -->
-      <header class="relative z-50 w-full pt-6 pb-4">
+      <header class="relative z-50 w-full pt-4 sm:pt-6 pb-4">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between w-full">
           <!-- Brand -->
-          <div class="flex items-center gap-3 group cursor-pointer" @click="router.push('/')">
+          <div class="flex items-center gap-2.5 sm:gap-3 group cursor-pointer" @click="router.push('/')">
             <div
-              class="relative w-[5.5rem] h-[5.5rem] flex items-center justify-center group-hover:scale-105 transition-transform shrink-0">
+              class="relative w-12 h-12 sm:w-[5.5rem] sm:h-[5.5rem] flex items-center justify-center group-hover:scale-105 transition-transform shrink-0">
               <img src="/main-logo.png" alt="Igrris Logo"
                 class="w-full h-full object-contain filter mix-blend-screen bg-transparent" />
             </div>
             <div class="flex items-center gap-2">
               <EncryptedText text="Igrris" :interval="3000" :scramble-speed="70"
-                class="text-2xl sm:text-3xl font-black tracking-widest" />
+                class="text-xl sm:text-3xl font-black tracking-widest" />
             </div>
           </div>
 
@@ -63,9 +63,9 @@
         <!-- Hero Section -->
 
         <section
-          class="relative z-10 pt-24 pb-32 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto flex flex-col items-center text-center">
+          class="relative z-10 pt-12 sm:pt-24 pb-16 sm:pb-32 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto flex flex-col items-center text-center">
           <div v-motion :initial="fadeUp(0).initial" :enter="fadeUp(0).enter"
-            class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-brand-900/30 border border-brand-800/50 text-brand-300 text-sm font-medium mb-8">
+            class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-brand-900/30 border border-brand-800/50 text-brand-300 text-xs sm:text-sm font-medium mb-6 sm:mb-8">
             <span class="relative flex h-2 w-2">
               <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-400 opacity-75"></span>
               <span class="relative inline-flex rounded-full h-2 w-2 bg-brand-500"></span>
@@ -74,12 +74,12 @@
           </div>
 
           <h1 v-motion :initial="fadeUp(150).initial" :enter="fadeUp(150).enter"
-            class="text-5xl md:text-7xl font-extrabold tracking-tight mb-6 text-transparent bg-clip-text bg-gradient-to-b from-white to-surface-400 max-w-4xl">
+            class="text-3xl sm:text-5xl md:text-7xl font-extrabold tracking-tight mb-4 sm:mb-6 text-transparent bg-clip-text bg-gradient-to-b from-white to-surface-400 max-w-4xl">
             Intelligent threat detection for your inbox.
           </h1>
 
           <p v-motion :initial="fadeUp(300).initial" :enter="fadeUp(300).enter"
-            class="text-lg md:text-xl text-surface-400 max-w-2xl mb-12 leading-relaxed">
+            class="text-base sm:text-lg md:text-xl text-surface-400 max-w-2xl mb-8 sm:mb-12 leading-relaxed">
             Igrris AI scans your Gmail using an advanced LinearSVC machine learning model to automatically categorize
             emails,
             block phishing attempts, and keep your inbox secure.
@@ -114,7 +114,7 @@
         </section>
 
         <!-- Try It Section -->
-        <section class="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-32">
+        <section class="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 sm:pb-32">
           <div v-motion :initial="fadeUp(300).initial" :visible-once="fadeUp(300).enter"
             class="bg-surface-900/40 backdrop-blur-xl border border-surface-700/50 p-6 sm:p-8 rounded-3xl shadow-2xl relative overflow-hidden">
             <!-- Decorative blob -->
@@ -187,7 +187,7 @@
         </section>
 
         <!-- Features Grid -->
-        <section class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-32">
+        <section class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 sm:pb-32">
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
 
             <!-- Feature 1 -->
@@ -255,10 +255,10 @@
         </section>
 
         <!-- Pipeline Information Section -->
-        <section class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-32">
-          <div v-motion :initial="fadeUp(0).initial" :visible-once="fadeUp(0).enter" class="text-center mb-16 md:mb-24">
-            <h2 class="text-3xl sm:text-4xl font-bold text-white mb-4">How it works</h2>
-            <p class="text-surface-400 max-w-2xl mx-auto">Igrris AI uses a sophisticated ML pipeline to analyze,
+        <section class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24 sm:pb-32">
+          <div v-motion :initial="fadeUp(0).initial" :visible-once="fadeUp(0).enter" class="text-center mb-10 md:mb-24 px-2">
+            <h2 class="text-2xl sm:text-4xl font-bold text-white mb-3">How it works</h2>
+            <p class="text-surface-400 text-xs sm:text-base max-w-2xl mx-auto leading-relaxed">Igrris AI uses a sophisticated ML pipeline to analyze,
               categorize,
               and secure your inbox in real-time.</p>
           </div>
@@ -271,12 +271,12 @@
 
             <!-- Animated connecting line (mobile) -->
             <div
-              class="block md:hidden absolute left-8 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-brand-500/50 to-transparent">
+              class="block md:hidden absolute left-5 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-brand-500/50 to-transparent">
             </div>
 
             <!-- Step 1: Extraction -->
             <div v-motion :initial="fadeUp(100).initial" :visible-once="fadeUp(100).enter"
-              class="relative w-full flex flex-col md:flex-row items-center justify-between mb-16 md:mb-24 group">
+              class="relative w-full flex flex-col md:flex-row items-center justify-between mb-12 md:mb-24 group">
               <div class="hidden md:block w-5/12 text-right pr-12">
                 <h3 class="text-2xl font-bold text-white mb-3 group-hover:text-brand-400 transition-colors">1. Secure
                   Extraction</h3>
@@ -285,43 +285,43 @@
                   email headers and decode the body while ensuring strict privacy. Emails are never stored.</p>
               </div>
               <div
-                class="absolute left-8 md:left-1/2 w-12 h-12 bg-surface-950 border border-brand-500/50 rounded-full flex items-center justify-center -translate-x-1/2 z-10 shadow-[0_0_20px_rgba(var(--color-brand-600),0.3)] group-hover:border-brand-400 group-hover:shadow-[0_0_30px_rgba(var(--color-brand-500),0.6)] group-hover:scale-110 transition-all duration-500">
-                <svg class="w-5 h-5 text-brand-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                class="absolute left-5 md:left-1/2 w-10 h-10 sm:w-12 sm:h-12 bg-surface-950 border border-brand-500/50 rounded-full flex items-center justify-center -translate-x-1/2 z-10 shadow-[0_0_20px_rgba(var(--color-brand-600),0.3)] group-hover:border-brand-400 group-hover:shadow-[0_0_30px_rgba(var(--color-brand-500),0.6)] group-hover:scale-110 transition-all duration-500">
+                <svg class="w-4 h-4 sm:w-5 sm:h-5 text-brand-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                     d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
               </div>
-              <div class="w-full md:w-5/12 pl-20 md:pl-12">
+              <div class="w-full md:w-5/12 pl-12 sm:pl-16 md:pl-12">
                 <div class="block md:hidden mb-4">
-                  <h3 class="text-xl font-bold text-white group-hover:text-brand-400 transition-colors">1. Secure
+                  <h3 class="text-lg sm:text-xl font-bold text-white group-hover:text-brand-400 transition-colors">1. Secure
                     Extraction
                   </h3>
-                  <p class="text-surface-400 text-sm leading-relaxed mt-2">Connects to the Gmail API using read-only
+                  <p class="text-surface-400 text-xs sm:text-sm leading-relaxed mt-1.5">Connects to the Gmail API using read-only
                     scopes.
                     We fetch email headers and decode the body while ensuring strict privacy.</p>
                 </div>
                 <div
-                  class="bg-surface-900/60 backdrop-blur-xl border border-surface-700/60 p-5 rounded-2xl shadow-xl relative overflow-hidden group-hover:border-brand-500/40 group-hover:shadow-[0_0_30px_rgba(var(--color-brand-600),0.2)] transition-all duration-500">
+                  class="bg-surface-900/60 backdrop-blur-xl border border-surface-700/60 p-4 sm:p-5 rounded-2xl shadow-xl relative overflow-hidden group-hover:border-brand-500/40 group-hover:shadow-[0_0_30px_rgba(var(--color-brand-600),0.2)] transition-all duration-500">
                   <div
                     class="absolute inset-0 bg-gradient-to-r from-brand-500/10 via-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500">
                   </div>
-                  <div class="flex items-center gap-1.5 mb-3 border-b border-surface-800 pb-2">
+                  <div class="flex items-center gap-1.5 mb-2.5 border-b border-surface-800 pb-2">
                     <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
                     <div class="w-2.5 h-2.5 rounded-full bg-amber-500/80"></div>
                     <div class="w-2.5 h-2.5 rounded-full bg-emerald-500/80"></div>
                     <span class="ml-2 text-[10px] font-mono text-surface-500">api_request.http</span>
                   </div>
-                  <pre class="font-mono text-xs text-surface-300 overflow-x-auto leading-relaxed"><code><span
+                  <pre class="font-mono text-[11px] sm:text-xs text-surface-300 overflow-x-auto whitespace-pre-wrap break-all leading-relaxed"><code><span
                   class="text-cyan-400">GET</span> /gmail/v1/users/me/messages
-                <span class="text-surface-500">Headers:</span> Authorization: Bearer...
-                <span class="text-emerald-400">Response:</span> { "id": "189a...", "snippet": "..." }</code></pre>
+<span class="text-surface-500">Headers:</span> Authorization: Bearer...
+<span class="text-emerald-400">Response:</span> { "id": "189a...", "snippet": "..." }</code></pre>
                 </div>
               </div>
             </div>
 
             <!-- Step 2: Preprocessing -->
             <div v-motion :initial="fadeUp(100).initial" :visible-once="fadeUp(100).enter"
-              class="relative w-full flex flex-col md:flex-row-reverse items-center justify-between mb-16 md:mb-24 group">
+              class="relative w-full flex flex-col md:flex-row-reverse items-center justify-between mb-12 md:mb-24 group">
               <div class="hidden md:block w-5/12 text-left pl-12">
                 <h3 class="text-2xl font-bold text-white mb-3 group-hover:text-purple-400 transition-colors">2.
                   Preprocessing
@@ -332,43 +332,43 @@
                   the text into an ML-ready numerical matrix.</p>
               </div>
               <div
-                class="absolute left-8 md:left-1/2 w-12 h-12 bg-surface-950 border border-purple-500/50 rounded-full flex items-center justify-center -translate-x-1/2 z-10 shadow-[0_0_20px_rgba(168,85,247,0.3)] group-hover:border-purple-400 group-hover:shadow-[0_0_30px_rgba(168,85,247,0.6)] group-hover:scale-110 transition-all duration-500">
-                <svg class="w-5 h-5 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                class="absolute left-5 md:left-1/2 w-10 h-10 sm:w-12 sm:h-12 bg-surface-950 border border-purple-500/50 rounded-full flex items-center justify-center -translate-x-1/2 z-10 shadow-[0_0_20px_rgba(168,85,247,0.3)] group-hover:border-purple-400 group-hover:shadow-[0_0_30px_rgba(168,85,247,0.6)] group-hover:scale-110 transition-all duration-500">
+                <svg class="w-4 h-4 sm:w-5 sm:h-5 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                     d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
                 </svg>
               </div>
-              <div class="w-full md:w-5/12 pl-20 md:pr-12 md:pl-0">
+              <div class="w-full md:w-5/12 pl-12 sm:pl-16 md:pr-12 md:pl-0">
                 <div class="block md:hidden mb-4">
-                  <h3 class="text-xl font-bold text-white group-hover:text-purple-400 transition-colors">2.
+                  <h3 class="text-lg sm:text-xl font-bold text-white group-hover:text-purple-400 transition-colors">2.
                     Preprocessing &
                     NLP</h3>
-                  <p class="text-surface-400 text-sm leading-relaxed mt-2">Raw text is cleaned, tokenized, and converted
+                  <p class="text-surface-400 text-xs sm:text-sm leading-relaxed mt-1.5">Raw text is cleaned, tokenized, and converted
                     to
                     lowercase. URLs, emails, and numbers are replaced with special tokens.</p>
                 </div>
                 <div
-                  class="bg-surface-900/60 backdrop-blur-xl border border-surface-700/60 p-5 rounded-2xl shadow-xl relative overflow-hidden group-hover:border-purple-500/40 group-hover:shadow-[0_0_30px_rgba(168,85,247,0.2)] transition-all duration-500">
+                  class="bg-surface-900/60 backdrop-blur-xl border border-surface-700/60 p-4 sm:p-5 rounded-2xl shadow-xl relative overflow-hidden group-hover:border-purple-500/40 group-hover:shadow-[0_0_30px_rgba(168,85,247,0.2)] transition-all duration-500">
                   <div
                     class="absolute inset-0 bg-gradient-to-l from-purple-500/10 via-pink-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500">
                   </div>
-                  <div class="flex items-center gap-1.5 mb-3 border-b border-surface-800 pb-2">
+                  <div class="flex items-center gap-1.5 mb-2.5 border-b border-surface-800 pb-2">
                     <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
                     <div class="w-2.5 h-2.5 rounded-full bg-amber-500/80"></div>
                     <div class="w-2.5 h-2.5 rounded-full bg-emerald-500/80"></div>
                     <span class="ml-2 text-[10px] font-mono text-surface-500">preprocess.py</span>
                   </div>
-                  <pre class="font-mono text-xs text-surface-300 overflow-x-auto leading-relaxed"><code><span
+                  <pre class="font-mono text-[11px] sm:text-xs text-surface-300 overflow-x-auto whitespace-pre-wrap break-all leading-relaxed"><code><span
                   class="text-purple-400">text</span> = <span class="text-blue-400">clean_text</span>(email.body)
-                <span class="text-purple-400">vector</span> = tfidf.<span class="text-blue-400">transform</span>([text])
-                <span class="text-surface-500"># Shape: (1, 15000) sparse matrix</span></code></pre>
+<span class="text-purple-400">vector</span> = tfidf.<span class="text-blue-400">transform</span>([text])
+<span class="text-surface-500"># Shape: (1, 15000) sparse matrix</span></code></pre>
                 </div>
               </div>
             </div>
 
             <!-- Step 3: ML Classification -->
             <div v-motion :initial="fadeUp(100).initial" :visible-once="fadeUp(100).enter"
-              class="relative w-full flex flex-col md:flex-row items-center justify-between mb-16 md:mb-24 group">
+              class="relative w-full flex flex-col md:flex-row items-center justify-between mb-12 md:mb-24 group">
               <div class="hidden md:block w-5/12 text-right pr-12">
                 <h3 class="text-2xl font-bold text-white mb-3 group-hover:text-blue-400 transition-colors">3. LinearSVC
                   Classification</h3>
@@ -378,37 +378,37 @@
                   distinct categories to find the perfect match.</p>
               </div>
               <div
-                class="absolute left-8 md:left-1/2 w-12 h-12 bg-surface-950 border border-blue-500/50 rounded-full flex items-center justify-center -translate-x-1/2 z-10 shadow-[0_0_20px_rgba(59,130,246,0.3)] group-hover:border-blue-400 group-hover:shadow-[0_0_30px_rgba(59,130,246,0.6)] group-hover:scale-110 transition-all duration-500">
-                <svg class="w-5 h-5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                class="absolute left-5 md:left-1/2 w-10 h-10 sm:w-12 sm:h-12 bg-surface-950 border border-blue-500/50 rounded-full flex items-center justify-center -translate-x-1/2 z-10 shadow-[0_0_20px_rgba(59,130,246,0.3)] group-hover:border-blue-400 group-hover:shadow-[0_0_30px_rgba(59,130,246,0.6)] group-hover:scale-110 transition-all duration-500">
+                <svg class="w-4 h-4 sm:w-5 sm:h-5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                     d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
                 </svg>
               </div>
-              <div class="w-full md:w-5/12 pl-20 md:pl-12">
+              <div class="w-full md:w-5/12 pl-12 sm:pl-16 md:pl-12">
                 <div class="block md:hidden mb-4">
-                  <h3 class="text-xl font-bold text-white group-hover:text-blue-400 transition-colors">3. LinearSVC
+                  <h3 class="text-lg sm:text-xl font-bold text-white group-hover:text-blue-400 transition-colors">3. LinearSVC
                     Classification</h3>
-                  <p class="text-surface-400 text-sm leading-relaxed mt-2">The sparse matrix is passed to our Linear
+                  <p class="text-surface-400 text-xs sm:text-sm leading-relaxed mt-1.5">The sparse matrix is passed to our Linear
                     Support
                     Vector Classifier, calculating decision scores across 11 distinct categories.</p>
                 </div>
                 <div
-                  class="bg-surface-900/60 backdrop-blur-xl border border-surface-700/60 p-5 rounded-2xl shadow-xl relative overflow-hidden group-hover:border-blue-500/40 group-hover:shadow-[0_0_30px_rgba(59,130,246,0.2)] transition-all duration-500">
+                  class="bg-surface-900/60 backdrop-blur-xl border border-surface-700/60 p-4 sm:p-5 rounded-2xl shadow-xl relative overflow-hidden group-hover:border-blue-500/40 group-hover:shadow-[0_0_30px_rgba(59,130,246,0.2)] transition-all duration-500">
                   <div
                     class="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-purple-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500">
                   </div>
-                  <div class="flex items-center gap-1.5 mb-3 border-b border-surface-800 pb-2">
+                  <div class="flex items-center gap-1.5 mb-2.5 border-b border-surface-800 pb-2">
                     <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
                     <div class="w-2.5 h-2.5 rounded-full bg-amber-500/80"></div>
                     <div class="w-2.5 h-2.5 rounded-full bg-emerald-500/80"></div>
                     <span class="ml-2 text-[10px] font-mono text-surface-500">classifier.py</span>
                   </div>
-                  <pre class="font-mono text-xs text-surface-300 overflow-x-auto leading-relaxed"><code><span
+                  <pre class="font-mono text-[11px] sm:text-xs text-surface-300 overflow-x-auto whitespace-pre-wrap break-all leading-relaxed"><code><span
                   class="text-purple-400">scores</span> = model.<span
                   class="text-blue-400">decision_function</span>(vector)
-                <span class="text-purple-400">prediction</span> = classes[np.<span
+<span class="text-purple-400">prediction</span> = classes[np.<span
                   class="text-blue-400">argmax</span>(scores)]
-                <span class="text-purple-400">confidence</span> = <span
+<span class="text-purple-400">confidence</span> = <span
                   class="text-emerald-400">softmax</span>(scores)</code></pre>
                 </div>
               </div>
@@ -427,37 +427,37 @@
                 </p>
               </div>
               <div
-                class="absolute left-8 md:left-1/2 w-12 h-12 bg-surface-950 border border-emerald-500/50 rounded-full flex items-center justify-center -translate-x-1/2 z-10 shadow-[0_0_20px_rgba(16,185,129,0.3)] group-hover:border-emerald-400 group-hover:shadow-[0_0_30px_rgba(16,185,129,0.6)] group-hover:scale-110 transition-all duration-500">
-                <svg class="w-5 h-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                class="absolute left-5 md:left-1/2 w-10 h-10 sm:w-12 sm:h-12 bg-surface-950 border border-emerald-500/50 rounded-full flex items-center justify-center -translate-x-1/2 z-10 shadow-[0_0_20px_rgba(16,185,129,0.3)] group-hover:border-emerald-400 group-hover:shadow-[0_0_30px_rgba(16,185,129,0.6)] group-hover:scale-110 transition-all duration-500">
+                <svg class="w-4 h-4 sm:w-5 sm:h-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                 </svg>
               </div>
-              <div class="w-full md:w-5/12 pl-20 md:pr-12 md:pl-0">
+              <div class="w-full md:w-5/12 pl-12 sm:pl-16 md:pr-12 md:pl-0">
                 <div class="block md:hidden mb-4">
-                  <h3 class="text-xl font-bold text-white group-hover:text-emerald-400 transition-colors">4. Smart
+                  <h3 class="text-lg sm:text-xl font-bold text-white group-hover:text-emerald-400 transition-colors">4. Smart
                     Action &
                     Labeling</h3>
-                  <p class="text-surface-400 text-sm leading-relaxed mt-2">The predicted label is mapped to a Gmail
+                  <p class="text-surface-400 text-xs sm:text-sm leading-relaxed mt-1.5">The predicted label is mapped to a Gmail
                     Label ID
                     and applied to the email, organizing your inbox instantly.</p>
                 </div>
                 <div
-                  class="bg-surface-900/60 backdrop-blur-xl border border-surface-700/60 p-5 rounded-2xl shadow-xl relative overflow-hidden group-hover:border-emerald-500/40 group-hover:shadow-[0_0_30px_rgba(16,185,129,0.2)] transition-all duration-500">
+                  class="bg-surface-900/60 backdrop-blur-xl border border-surface-700/60 p-4 sm:p-5 rounded-2xl shadow-xl relative overflow-hidden group-hover:border-emerald-500/40 group-hover:shadow-[0_0_30px_rgba(16,185,129,0.2)] transition-all duration-500">
                   <div
                     class="absolute inset-0 bg-gradient-to-l from-emerald-500/10 via-teal-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500">
                   </div>
-                  <div class="flex items-center gap-1.5 mb-3 border-b border-surface-800 pb-2">
+                  <div class="flex items-center gap-1.5 mb-2.5 border-b border-surface-800 pb-2">
                     <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
                     <div class="w-2.5 h-2.5 rounded-full bg-amber-500/80"></div>
                     <div class="w-2.5 h-2.5 rounded-full bg-emerald-500/80"></div>
                     <span class="ml-2 text-[10px] font-mono text-surface-500">modify_labels.json</span>
                   </div>
-                  <pre class="font-mono text-xs text-surface-300 overflow-x-auto leading-relaxed"><code><span
+                  <pre class="font-mono text-[11px] sm:text-xs text-surface-300 overflow-x-auto whitespace-pre-wrap break-all leading-relaxed"><code><span
                   class="text-cyan-400">POST</span> /gmail/v1/users/me/messages/{id}/modify
-                {
-                <span class="text-purple-400">"addLabelIds"</span>: [<span class="text-emerald-400">"Label_4"</span>],
-                <span class="text-purple-400">"removeLabelIds"</span>: [<span class="text-amber-400">"INBOX"</span>]
-                }</code></pre>
+{
+<span class="text-purple-400">"addLabelIds"</span>: [<span class="text-emerald-400">"Label_4"</span>],
+<span class="text-purple-400">"removeLabelIds"</span>: [<span class="text-amber-400">"INBOX"</span>]
+}</code></pre>
                 </div>
               </div>
             </div>
@@ -468,7 +468,7 @@
 
         <!-- Footer -->
 
-        <footer class="relative z-10 border-t border-surface-800 py-8 text-center text-surface-500 text-sm">
+        <footer class="relative z-10 border-t border-surface-800 pt-8 pb-36 sm:pb-16 text-center text-surface-500 text-sm">
           <p>Powered by Vue 3, FastAPI, and LinearSVC.</p>
         </footer>
 

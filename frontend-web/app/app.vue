@@ -1,10 +1,21 @@
 <template>
-  <NuxtPage />
+  <div>
+    <ClientOnly>
+      <SplashScreen @complete="appReady = true" />
+    </ClientOnly>
+    <div
+      class="transition-opacity duration-700 ease-out"
+      :class="appReady ? 'opacity-100' : 'opacity-0 pointer-events-none'"
+    >
+      <NuxtPage />
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
-// Dark mode is set via a blocking inline script in nuxt.config.ts <head>
-// so the `dark` class is always present before the first paint — no flash.
+import { ref } from 'vue'
+
+const appReady = ref(false)
 </script>
 
 <style>
