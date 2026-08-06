@@ -193,3 +193,19 @@ Script starts:
 ### Google Cloud Console — Required URI
 Add `https://your-app.vercel.app/login` to:
 > Credentials → OAuth 2.0 Client → Authorized Redirect URIs
+
+---
+
+## Flash of Unstyled Content (FOUC) Fix — 2026-08-06
+
+**Problem:** On first page load, there was a brief white/unstyled flash before the dark-mode styles appeared.
+
+**Root Cause:** `app.vue` was applying the `dark` class via `process.client` (runs after hydration). During SSR + hydration gap, the `<html>` element had no `dark` class → browser briefly rendered light styles.
+
+**Fix Applied:**
+- Added a **blocking inline `<script>`** in `nuxt.config.ts` → `app.head.script` that sets `dark` class AND `background-color: #030712` on `<html>` **before the first paint**.
+- Removed the `process.client` setter from `app.vue` (redundant and late).
+
+**Key files changed:**
+- `frontend-web/nuxt.config.ts` — added `script: [{ innerHTML: "document.documentElement.classList.add('dark');..." }]`
+- `frontend-web/app/app.vue` — removed `process.client` dark class setter

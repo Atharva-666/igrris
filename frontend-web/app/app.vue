@@ -3,10 +3,8 @@
 </template>
 
 <script setup lang="ts">
-// Force dark mode on the <html> element at the root level
-if (process.client) {
-  document.documentElement.classList.add('dark')
-}
+// Dark mode is set via a blocking inline script in nuxt.config.ts <head>
+// so the `dark` class is always present before the first paint — no flash.
 </script>
 
 <style>
