@@ -207,5 +207,8 @@ Add `https://your-app.vercel.app/login` to:
 - Removed the `process.client` setter from `app.vue` (redundant and late).
 
 **Key files changed:**
-- `frontend-web/nuxt.config.ts` — added `script: [{ innerHTML: "document.documentElement.classList.add('dark');..." }]`
-- `frontend-web/app/app.vue` — removed `process.client` dark class setter
+- `frontend-web/nuxt.config.ts` — added `script: [{ innerHTML: "document.documentElement.classList.add('dark');document.documentElement.style.backgroundColor='#000000';" }]`
+- `frontend-web/app/app.vue` — added `<SplashScreen />` overlay component
+- `frontend-web/app/components/FallingStarsBg.vue` — Inspira UI HTML5 canvas-based meteor/falling stars background component with mobile fallback viewport dimensions.
+- `frontend-web/app/components/SplashScreen.vue` — Pitch-black fullscreen splash screen incorporating `FallingStarsBg`, centered glowing logo, scramble text, and smooth fade-out.
+- `frontend-web/app/pages/index.vue` & `frontend-web/app/components/WavyBackground.vue` — Fixed mobile right-side text & card cutoff in "How it works" section by shifting timeline line position (`left-5`), reducing container left padding (`pl-12 sm:pl-16`), and wrapping code snippets (`whitespace-pre-wrap break-all`).
