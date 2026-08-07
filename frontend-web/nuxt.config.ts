@@ -25,14 +25,28 @@ export default defineNuxtConfig({
       mode: 'out-in'
     },
     head: {
-      title: 'Igrris',
+      htmlAttrs: {
+        lang: 'en',
+      },
+      title: 'Igrris — Intelligent Gmail Security Assistant',
       meta: [
         { charset: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
         {
           name: 'description',
-          content: 'Igrris AI — Intelligent Gmail security assistant powered by machine learning.',
+          content: 'Igrris AI scans your Gmail using an advanced LinearSVC machine learning model to automatically categorize emails, block phishing attempts, and keep your inbox secure.',
         },
+        { name: 'theme-color', content: '#000000' },
+        // OpenGraph
+        { property: 'og:type', content: 'website' },
+        { property: 'og:title', content: 'Igrris — Intelligent Gmail Security Assistant' },
+        { property: 'og:description', content: 'Intelligent threat detection for your inbox powered by Machine Learning.' },
+        { property: 'og:image', content: '/main-logo.png' },
+        // Twitter Card
+        { name: 'twitter:card', content: 'summary_large_image' },
+        { name: 'twitter:title', content: 'Igrris — Intelligent Gmail Security Assistant' },
+        { name: 'twitter:description', content: 'Intelligent threat detection for your inbox powered by Machine Learning.' },
+        { name: 'twitter:image', content: '/main-logo.png' },
       ],
       // Blocking inline script — runs before any paint so dark class is always
       // present from the very first frame. Eliminates the white/unstyled flash.

@@ -1,5 +1,6 @@
 <template>
   <button
+    type="button"
     :class="[
       'group relative inline-flex items-center justify-center overflow-hidden transition-transform duration-300',
       'hover:scale-[1.02] active:scale-[0.98]',

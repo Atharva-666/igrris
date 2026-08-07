@@ -3,18 +3,22 @@
   <Transition name="slide-panel">
     <aside
       v-if="email"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="email-details-title"
       class="fixed inset-y-0 right-0 w-full sm:max-w-lg bg-surface-900 border-l border-surface-800 z-50 flex flex-col shadow-2xl"
     >
       <!-- Header -->
       <div class="flex items-start justify-between gap-4 p-4 sm:p-6 border-b border-surface-800">
         <div class="min-w-0 flex-1">
-          <h2 class="text-sm sm:text-base font-semibold text-surface-100 truncate">{{ email.subject || '(no subject)' }}</h2>
+          <h2 id="email-details-title" class="text-sm sm:text-base font-semibold text-surface-100 truncate">{{ email.subject || '(no subject)' }}</h2>
           <p class="text-muted text-xs sm:text-sm mt-0.5 truncate">{{ email.sender }}</p>
         </div>
         <button
           id="btn-close-detail"
+          type="button"
           class="btn-ghost p-2 -mr-2 shrink-0"
-          aria-label="Close"
+          aria-label="Close detail panel"
           @click="emit('close')"
         >
           <!-- X icon -->

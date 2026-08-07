@@ -229,3 +229,31 @@ Add `https://your-app.vercel.app/login` to:
   - **Slide-Over Panel (`EmailDetails.vue`)**: Configured slide panel to `w-full sm:max-w-lg`, added `p-4 sm:p-6` mobile padding, set metadata cards to single column on mobile (`grid-cols-1 sm:grid-cols-2`), and updated stacking order to `z-50`.
   - **Stats Strip (`ScanStats.vue`)**: Added touch padding (`!p-3 sm:!p-4`), truncated long label names, and tuned grid gaps (`gap-2.5 sm:gap-3`).
 
+---
+
+## Frontend Checklist Audit & Best Practices Fixes — 2026-08-07
+
+### 12. Frontend Checklist Compliance ([mcp.frontendchecklist.io](https://mcp.frontendchecklist.io))
+
+- **HTML Foundations & SEO**:
+  - Configured `htmlAttrs: { lang: 'en' }` in [nuxt.config.ts](file:///c:/Users/VICTUS/OneDrive/Attachments/Desktop/igrris/frontend-web/nuxt.config.ts).
+  - Added full OpenGraph metadata (`og:type`, `og:title`, `og:description`, `og:image`) and Twitter Cards (`twitter:card`, `twitter:title`, `twitter:description`, `twitter:image`).
+  - Added `{ name: 'theme-color', content: '#000000' }` meta tag.
+- **Accessibility & ARIA**:
+  - Modal dialogs: Added `role="dialog"`, `aria-modal="true"`, `aria-labelledby` to Delete Labels modal in [index.vue](file:///c:/Users/VICTUS/OneDrive/Attachments/Desktop/igrris/frontend-web/app/pages/index.vue#L768-L785) and detail panel in [EmailDetails.vue](file:///c:/Users/VICTUS/OneDrive/Attachments/Desktop/igrris/frontend-web/app/components/EmailDetails.vue#L1-L15).
+  - Explicit `type="button"` attributes added across [InteractiveHoverButton.vue](file:///c:/Users/VICTUS/OneDrive/Attachments/Desktop/igrris/frontend-web/app/components/InteractiveHoverButton.vue), [ShimmerButton.vue](file:///c:/Users/VICTUS/OneDrive/Attachments/Desktop/igrris/frontend-web/app/components/ShimmerButton.vue), and form action buttons to avoid accidental form submissions.
+  - Added explicit `aria-label` tags on input fields and icon-only close buttons.
+- **Performance**:
+  - Added `decoding="async"` and explicit dimensions (`width`, `height`) on image elements.
+
+---
+
+## Mobile Sizing Round 2 — 2026-08-07
+
+### Changes to `index.vue`
+- **Header**: Reduced vertical padding from `pt-4 pb-4` → `pt-3 pb-3` on mobile. Shrank profile avatar from `w-8 h-8` → `w-6 h-6` on mobile (sm: stays w-8). Reduced "Sign out" button padding and text from `text-xs` → `text-[11px]` on mobile. Auth pill gaps/padding reduced on mobile.
+- **Logo**: Increased from `w-9 h-9` → `w-10 h-10` on mobile so it's slightly more visible (was too small).
+- **Hero Section**: Reduced top padding from `pt-12` → `pt-8` and bottom `pb-16` → `pb-10` on mobile. Shimmer button text reduced from `text-lg` → `text-base sm:text-lg` on mobile.
+- **Feature Cards**: Padding reduced from fixed `p-8` → `p-5 sm:p-8`, icon boxes from `w-12 h-12` → `w-10 h-10 sm:w-12 sm:h-12`, headings from `text-xl` → `text-base sm:text-xl` on mobile.
+- **Dashboard Main**: Horizontal padding `px-4` → `px-3` on mobile; vertical `py-8` → `py-4 sm:py-8`.
+- Build verified successfully with `npm run build`.

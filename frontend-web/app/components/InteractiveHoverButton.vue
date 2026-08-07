@@ -1,5 +1,6 @@
 <template>
   <button
+    type="button"
     class="group relative cursor-pointer overflow-hidden rounded-full border border-surface-800 bg-surface-950 px-2 py-1 text-center font-semibold text-white transition-all duration-300 hover:border-transparent hover:bg-surface-900 disabled:opacity-50 disabled:cursor-not-allowed"
     :class="$props.class"
     v-bind="$attrs"

@@ -3,41 +3,41 @@
     <main class="relative text-surface-100 min-h-screen flex flex-col">
 
       <!-- Seamless Floating Header (No dark bar cutting off waves) -->
-      <header class="relative z-50 w-full pt-4 sm:pt-6 pb-4">
+      <header class="relative z-50 w-full pt-3 sm:pt-6 pb-3">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between w-full">
           <!-- Brand -->
-          <div class="flex items-center gap-2.5 sm:gap-3 group cursor-pointer" @click="router.push('/')">
+          <div class="flex items-center gap-2.5 sm:gap-3 group cursor-pointer shrink-0" aria-label="Igrris AI Home" @click="router.push('/')">
             <div
-              class="relative w-12 h-12 sm:w-[5.5rem] sm:h-[5.5rem] flex items-center justify-center group-hover:scale-105 transition-transform shrink-0">
-              <img src="/main-logo.png" alt="Igrris Logo"
+              class="relative w-10 h-10 sm:w-12 sm:h-12 md:w-[5.5rem] md:h-[5.5rem] flex items-center justify-center group-hover:scale-105 transition-transform shrink-0">
+              <img src="/main-logo.png" alt="Igrris Logo" width="88" height="88" decoding="async"
                 class="w-full h-full object-contain filter mix-blend-screen bg-transparent" />
             </div>
             <div class="flex items-center gap-2">
               <EncryptedText text="Igrris" :interval="3000" :scramble-speed="70"
-                class="text-xl sm:text-3xl font-black tracking-widest" />
+                class="text-lg sm:text-2xl md:text-3xl font-black tracking-widest" />
             </div>
           </div>
 
           <!-- Actions -->
-          <div class="flex items-center gap-3">
+          <div class="flex items-center gap-2 sm:gap-3">
             <template v-if="authenticated">
               <div
-                class="flex items-center gap-3 bg-surface-900/80 p-1.5 pl-2.5 rounded-full border border-surface-700/60 backdrop-blur-md shadow-xl">
+                class="flex items-center gap-1.5 sm:gap-3 bg-surface-900/80 p-1 sm:p-1.5 pl-2 sm:pl-2.5 rounded-full border border-surface-700/60 backdrop-blur-md shadow-xl">
                 <!-- Profile Logo -->
                 <div v-if="userPicture"
-                  class="w-8 h-8 rounded-full overflow-hidden border border-surface-700 shadow-md shrink-0">
-                  <img :src="userPicture" alt="Profile" class="w-full h-full object-cover" />
+                  class="w-6 h-6 sm:w-8 sm:h-8 rounded-full overflow-hidden border border-surface-700 shadow-md shrink-0">
+                  <img :src="userPicture" alt="User Profile" width="32" height="32" decoding="async" class="w-full h-full object-cover" />
                 </div>
                 <div v-else
-                  class="w-8 h-8 rounded-full bg-gradient-to-tr from-brand-500 to-purple-500 flex items-center justify-center text-white shadow-md border border-surface-700 shrink-0">
+                  class="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gradient-to-tr from-brand-500 to-purple-500 flex items-center justify-center text-white shadow-md border border-surface-700 shrink-0">
                   <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                       d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
                 </div>
 
-                <button id="btn-logout"
-                  class="px-3.5 py-1.5 rounded-full text-xs font-medium text-surface-300 hover:text-white bg-surface-800/80 hover:bg-surface-700 border border-surface-700/80 hover:border-surface-600 transition-all flex items-center gap-1.5 shadow-sm"
+                <button id="btn-logout" type="button" aria-label="Sign out"
+                  class="px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-medium text-surface-300 hover:text-white bg-surface-800/80 hover:bg-surface-700 border border-surface-700/80 hover:border-surface-600 transition-all flex items-center gap-1 sm:gap-1.5 shadow-sm"
                   @click="handleLogout">
                   <span>Sign out</span>
                   <svg class="w-3.5 h-3.5 text-surface-400 group-hover:text-white" fill="none" viewBox="0 0 24 24"
@@ -63,7 +63,7 @@
         <!-- Hero Section -->
 
         <section
-          class="relative z-10 pt-12 sm:pt-24 pb-16 sm:pb-32 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto flex flex-col items-center text-center">
+          class="relative z-10 pt-8 sm:pt-24 pb-10 sm:pb-32 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto flex flex-col items-center text-center">
           <div v-motion :initial="fadeUp(0).initial" :enter="fadeUp(0).enter"
             class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-brand-900/30 border border-brand-800/50 text-brand-300 text-xs sm:text-sm font-medium mb-6 sm:mb-8">
             <span class="relative flex h-2 w-2">
@@ -90,14 +90,14 @@
             <ShimmerButton v-if="!authenticated" class="w-full sm:w-auto shadow-2xl"
               shimmer-color="rgba(255, 255, 255, 0.4)" shimmer-size="2px" border-radius="100px" shimmer-duration="3s"
               background="#000000" @click="handleSignIn" :disabled="loading">
-              <span class="flex items-center gap-2 text-white font-semibold text-lg whitespace-nowrap">
+              <span class="flex items-center gap-2 text-white font-semibold text-base sm:text-lg whitespace-nowrap">
                 {{ loading ? 'Connecting...' : 'Secure Your Inbox' }}
               </span>
             </ShimmerButton>
             <ShimmerButton v-else class="w-full sm:w-auto shadow-2xl" shimmer-color="rgba(255, 255, 255, 0.4)"
               shimmer-size="2px" border-radius="100px" shimmer-duration="3s" background="#000000"
               @click="handleHeroAction">
-              <span class="flex items-center gap-2 text-white font-semibold text-lg whitespace-nowrap">
+              <span class="flex items-center gap-2 text-white font-semibold text-base sm:text-lg whitespace-nowrap">
                 Secure Your Inbox
               </span>
             </ShimmerButton>
@@ -131,7 +131,7 @@
               </div>
 
               <div class="relative group">
-                <textarea v-model="tryItText" rows="4" placeholder="Paste message content here..."
+                <textarea id="try-it-text-input" aria-label="Message content to analyze" v-model="tryItText" rows="4" placeholder="Paste message content here..."
                   class="w-full bg-surface-950/50 border border-surface-700 rounded-2xl p-4 text-white placeholder:text-surface-500 focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 transition-all resize-none"
                   :disabled="tryItLoading"></textarea>
 
@@ -192,16 +192,16 @@
 
             <!-- Feature 1 -->
             <div v-motion :initial="fadeUp(0).initial" :visible-once="fadeUp(0).enter"
-              class="bg-surface-900/50 backdrop-blur-md border border-surface-800 p-8 rounded-2xl hover:bg-surface-800/50 transition-colors duration-300 group">
+              class="bg-surface-900/50 backdrop-blur-md border border-surface-800 p-5 sm:p-8 rounded-2xl hover:bg-surface-800/50 transition-colors duration-300 group">
               <div
-                class="w-12 h-12 rounded-xl bg-red-950/50 border border-red-900/50 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-red-950/50 border border-red-900/50 flex items-center justify-center mb-4 sm:mb-6 group-hover:scale-110 transition-transform duration-300">
                 <svg class="w-6 h-6 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                   stroke-width="2">
                   <path stroke-linecap="round" stroke-linejoin="round"
                     d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                 </svg>
               </div>
-              <h3 class="text-xl font-semibold text-white mb-3">Threat Mitigation</h3>
+              <h3 class="text-base sm:text-xl font-semibold text-white mb-2 sm:mb-3">Threat Mitigation</h3>
               <p class="text-surface-400 leading-relaxed text-sm">
                 Instantly flags <span class="text-red-400 font-medium">Phishing</span> and <span
                   class="text-amber-400 font-medium">Spam</span> attempts with deep textual analysis and TF-IDF
@@ -211,16 +211,16 @@
 
             <!-- Feature 2 -->
             <div v-motion :initial="fadeUp(150).initial" :visible-once="fadeUp(150).enter"
-              class="bg-surface-900/50 backdrop-blur-md border border-surface-800 p-8 rounded-2xl hover:bg-surface-800/50 transition-colors duration-300 group">
+              class="bg-surface-900/50 backdrop-blur-md border border-surface-800 p-5 sm:p-8 rounded-2xl hover:bg-surface-800/50 transition-colors duration-300 group">
               <div
-                class="w-12 h-12 rounded-xl bg-blue-950/50 border border-blue-900/50 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-blue-950/50 border border-blue-900/50 flex items-center justify-center mb-4 sm:mb-6 group-hover:scale-110 transition-transform duration-300">
                 <svg class="w-6 h-6 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                   stroke-width="2">
                   <path stroke-linecap="round" stroke-linejoin="round"
                     d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002 2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                 </svg>
               </div>
-              <h3 class="text-xl font-semibold text-white mb-3">Smart Categorization</h3>
+              <h3 class="text-base sm:text-xl font-semibold text-white mb-2 sm:mb-3">Smart Categorization</h3>
               <p class="text-surface-400 leading-relaxed text-sm">
                 Automatically sorts your inbox into 11 distinct labels including <span
                   class="text-cyan-400 font-medium">Work</span>, <span class="text-teal-400 font-medium">Banking</span>,
@@ -231,18 +231,18 @@
 
             <!-- Feature 3 -->
             <div v-motion :initial="fadeUp(300).initial" :visible-once="fadeUp(300).enter"
-              class="bg-surface-900/60 backdrop-blur-xl border border-surface-700/60 p-8 rounded-2xl hover:bg-surface-800/60 hover:border-brand-500/40 hover:shadow-[0_0_30px_rgba(var(--color-brand-600),0.2)] transition-all duration-300 group relative overflow-hidden">
+              class="bg-surface-900/60 backdrop-blur-xl border border-surface-700/60 p-5 sm:p-8 rounded-2xl hover:bg-surface-800/60 hover:border-brand-500/40 hover:shadow-[0_0_30px_rgba(var(--color-brand-600),0.2)] transition-all duration-300 group relative overflow-hidden">
               <div
                 class="absolute -top-12 -right-12 w-28 h-28 bg-brand-500/10 rounded-full blur-2xl group-hover:bg-brand-500/25 transition-all duration-500">
               </div>
               <div
-                class="w-12 h-12 rounded-xl bg-brand-950/70 border border-brand-900/70 flex items-center justify-center mb-6 group-hover:scale-110 group-hover:border-brand-500/50 shadow-inner transition-transform duration-300">
+                class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-brand-950/70 border border-brand-900/70 flex items-center justify-center mb-4 sm:mb-6 group-hover:scale-110 group-hover:border-brand-500/50 shadow-inner transition-transform duration-300">
                 <svg class="w-6 h-6 text-brand-400 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                   stroke-width="2">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
               </div>
-              <h3 class="text-xl font-semibold text-white mb-3 group-hover:text-brand-300 transition-colors">Live
+              <h3 class="text-base sm:text-xl font-semibold text-white mb-2 sm:mb-3 group-hover:text-brand-300 transition-colors">Live
                 Processing
               </h3>
               <p class="text-surface-400 leading-relaxed text-sm">
@@ -477,7 +477,7 @@
       <!-- Authenticated View (Dashboard) -->
       <div v-if="authenticated" id="dashboard" class="flex-1 flex flex-col relative z-10 min-h-screen">
 
-        <main class="flex-1 w-full max-w-[95%] xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <main class="flex-1 w-full max-w-[95%] xl:max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8">
 
           <!-- Error banner (Centered Inspira UI Glass Pill) -->
           <div v-if="scanError"
@@ -767,6 +767,9 @@
 
         <!-- Delete Labels Confirmation Modal -->
         <div v-if="showDeleteModal"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="delete-modal-title"
           class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-fade-in">
           <div
             class="bg-surface-900 border border-surface-700/80 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl relative overflow-hidden">
@@ -783,7 +786,7 @@
                 </svg>
               </div>
               <div>
-                <h3 class="text-lg font-bold text-white">Delete Gmail Labels</h3>
+                <h3 id="delete-modal-title" class="text-lg font-bold text-white">Delete Gmail Labels</h3>
                 <p class="text-xs text-surface-400">Remove Igrris categories from Gmail</p>
               </div>
             </div>
@@ -805,18 +808,21 @@
 
             <div class="flex flex-col gap-2.5 sm:flex-row sm:justify-end">
               <button
+                type="button"
                 class="px-4 py-2.5 rounded-xl text-sm font-medium text-surface-300 hover:text-white bg-surface-800 hover:bg-surface-700 border border-surface-700/60 transition-colors"
                 @click="showDeleteModal = false" :disabled="deletingLabels">
                 Cancel
               </button>
 
               <button v-if="activeFilter"
+                type="button"
                 class="px-4 py-2.5 rounded-xl text-sm font-medium bg-amber-950/80 hover:bg-amber-900/90 text-amber-200 border border-amber-800/80 transition-colors flex items-center justify-center gap-2"
                 @click="handleDeleteLabels(activeFilter)" :disabled="deletingLabels">
                 <span>Delete '{{ activeFilter }}'</span>
               </button>
 
               <button
+                type="button"
                 class="px-4 py-2.5 rounded-xl text-sm font-medium bg-red-600 hover:bg-red-500 text-white border border-red-500 shadow-lg shadow-red-900/40 transition-colors flex items-center justify-center gap-2"
                 @click="handleDeleteLabels()" :disabled="deletingLabels">
                 <svg v-if="deletingLabels" class="w-4 h-4 animate-spin text-white" fill="none" viewBox="0 0 24 24">
