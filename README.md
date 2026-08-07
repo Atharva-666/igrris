@@ -22,11 +22,10 @@
 8. [Configuration](#configuration)
 9. [Running the Application](#running-the-application)
 10. [Testing](#testing)
-11. [Docker Deployment](#docker-deployment)
-12. [Cloud Deployment](#cloud-deployment)
-13. [Model Performance](#model-performance)
-14. [Troubleshooting](#troubleshooting)
-15. [Tech Stack](#tech-stack)
+11. [Cloud Deployment](#cloud-deployment)
+12. [Model Performance](#model-performance)
+13. [Troubleshooting](#troubleshooting)
+14. [Tech Stack](#tech-stack)
 
 ---
 
@@ -53,7 +52,7 @@ The project is designed to be interview-ready — demonstrating modular architec
 | 🌐 REST API | FastAPI with OpenAPI docs auto-generated at `/docs` |
 | 🖥️ Web UI | Streamlit app with confidence bar and input validation |
 | ✅ Test suite | 22 pytest tests covering preprocessing, prediction, and API |
-| 🐳 Docker ready | Single `docker build` + `docker run` to deploy anywhere |
+| ☁️ Cloud Hosted | Frontend on Vercel, Backend on Railway |
 | 📖 Detailed logging | Timestamped logs at every stage of the pipeline |
 
 ---
@@ -165,7 +164,6 @@ Email-Spam-Detector/
 │   └── test_api.py            # 6 tests — HTTP endpoints
 │
 ├── 📦 requirements.txt        # Python dependencies with version ranges
-├── 🐳 Dockerfile              # Container build definition
 └── 📖 README.md
 ```
 
@@ -398,47 +396,23 @@ python3 -m pytest tests/ -v
 
 ---
 
-## Docker Deployment
-
-### Build
-
-```bash
-docker build -t spam-detector .
-```
-
-### Run the API
-
-```bash
-docker run -p 8000:8000 spam-detector
-```
-
-### Run the Streamlit UI
-
-```bash
-docker run -p 8501:8501 spam-detector \
-  streamlit run app.py --server.port 8501 --server.address 0.0.0.0
-```
-
-> **Note:** The Dockerfile downloads NLTK data at build time, so no internet connection is needed at runtime.
-
 ---
 
 ## Cloud Deployment
 
-### Render
+### Frontend (Vercel)
+The Vue 3 / Nuxt 3 frontend is hosted on **Vercel**.
+1. Connect your GitHub repository to Vercel.
+2. Select the `frontend-web` directory as the root.
+3. Framework Preset: Nuxt.
+4. Deploy!
 
-1. Push the project to a GitHub repository.
-2. Create a **New Web Service** on [Render](https://render.com) and connect the repo.
-3. Set:
-   - **Build Command:**
-     ```
-     pip install -r requirements.txt && python -c "import nltk; nltk.download('punkt'); nltk.download('punkt_tab'); nltk.download('stopwords')" && python train.py
-     ```
-   - **Start Command:**
-     ```
-     uvicorn api:app --host 0.0.0.0 --port $PORT
-     ```
-4. Click **Deploy**.
+### Backend (Railway)
+The FastAPI backend and ML model are hosted on **Railway**.
+1. Connect your GitHub repository to Railway.
+2. Railway will automatically detect the Python environment.
+3. Set the Start Command to: `uvicorn api:app --host 0.0.0.0 --port $PORT`
+4. Deploy!
 
 ### AWS EC2
 
@@ -538,7 +512,6 @@ streamlit run app.py --server.port 8502
 | Data Validation | Pydantic v2 | 2.0+ |
 | HTTP Client (tests) | httpx | 0.27+ |
 | Testing | pytest | 8.0+ |
-| Containerisation | Docker | any recent |
 
 ---
 

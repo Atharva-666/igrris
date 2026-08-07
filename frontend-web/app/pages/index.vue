@@ -86,7 +86,7 @@
           </p>
 
           <div v-motion :initial="fadeUp(450).initial" :enter="fadeUp(450).enter"
-            class="flex flex-col sm:flex-row gap-4 items-center w-full justify-center max-w-md">
+            class="flex flex-col sm:flex-row gap-4 items-center w-full justify-center max-w-md scale-[0.75] origin-top">
             <ShimmerButton v-if="!authenticated" class="w-full sm:w-auto shadow-2xl"
               shimmer-color="rgba(255, 255, 255, 0.4)" shimmer-size="2px" border-radius="100px" shimmer-duration="3s"
               background="#000000" @click="handleSignIn" :disabled="loading">
@@ -116,7 +116,7 @@
         <!-- Try It Section -->
         <section class="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 sm:pb-32">
           <div v-motion :initial="fadeUp(300).initial" :visible-once="fadeUp(300).enter"
-            class="bg-surface-900/40 backdrop-blur-xl border border-surface-700/50 p-6 sm:p-8 rounded-3xl shadow-2xl relative overflow-hidden">
+            class="bg-surface-900/40 backdrop-blur-xl border border-surface-700/50 p-6 sm:p-8 rounded-3xl shadow-2xl relative overflow-hidden scale-[0.75] origin-top">
             <!-- Decorative blob -->
             <div class="absolute -top-24 -right-24 w-48 h-48 bg-brand-500/20 rounded-full blur-3xl pointer-events-none">
             </div>
@@ -469,7 +469,8 @@
         <!-- Footer -->
 
         <footer class="relative z-10 border-t border-surface-800 pt-8 pb-36 sm:pb-16 text-center text-surface-500 text-sm">
-          <p>Powered by Vue 3, FastAPI, and LinearSVC.</p>
+          <p class="mb-1 text-surface-500">Powered by</p>
+          <p class="font-medium text-surface-300">Vue 3, FastAPI, and LinearSVC</p>
         </footer>
 
       </div>
