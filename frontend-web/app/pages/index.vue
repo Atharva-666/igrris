@@ -547,34 +547,34 @@
           </div>
 
           <!-- Scanning Live Terminal State -->
-          <div v-if="scanning" class="mb-8 relative z-10">
-            <div class="card border-surface-700 shadow-2xl !p-8 flex flex-col gap-6 w-full max-w-3xl mx-auto">
+          <div v-if="scanning" class="mb-8 relative z-10 animate-fade-in">
+            <div class="card border-surface-700 shadow-2xl p-4 sm:p-6 md:!p-8 flex flex-col gap-4 sm:gap-6 w-full max-w-3xl mx-auto">
               <!-- Header -->
-              <div class="flex items-center justify-between">
-                <div class="flex items-center gap-4">
-                  <div class="relative">
-                    <div class="w-10 h-10 rounded-full border-2 border-surface-800 border-t-brand-500 animate-spin" />
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div class="flex items-center gap-3 sm:gap-4">
+                  <div class="relative shrink-0">
+                    <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-full border-2 border-surface-800 border-t-brand-500 animate-spin" />
                   </div>
                   <div>
-                    <p class="text-base font-medium text-surface-100">Scanning your inbox…</p>
-                    <p class="text-muted text-sm mt-0.5">Fetching emails, running ML model, and applying labels.</p>
+                    <p class="text-sm sm:text-base font-medium text-surface-100">Scanning your inbox…</p>
+                    <p class="text-muted text-xs sm:text-sm mt-0.5">Fetching emails, running ML model, and applying labels.</p>
                   </div>
                 </div>
 
-                <div class="flex items-center gap-6 text-right tabular-nums">
+                <div class="flex items-center justify-between sm:justify-end gap-4 text-right tabular-nums">
                   <button v-if="!stopping"
-                    class="btn-ghost !text-red-400 hover:!text-red-300 hover:!bg-red-950/50 !px-4 !py-2 text-sm font-medium border border-red-900/30 rounded-lg"
+                    class="btn-ghost !text-red-400 hover:!text-red-300 hover:!bg-red-950/50 px-3 sm:!px-4 py-1.5 sm:!py-2 text-xs sm:text-sm font-medium border border-red-900/30 rounded-lg shrink-0"
                     @click="handleStopScan">
                     Stop Scan
                   </button>
-                  <span v-else class="text-surface-500 text-sm font-medium animate-pulse">Stopping...</span>
+                  <span v-else class="text-surface-500 text-xs sm:text-sm font-medium animate-pulse">Stopping...</span>
 
-                  <div>
-                    <p class="text-2xl font-semibold text-surface-100">
+                  <div class="text-right">
+                    <p class="text-xl sm:text-2xl font-semibold text-surface-100">
                       <span class="text-brand-400">{{ scanProgress.current }}</span>
-                      <span class="text-surface-500 text-lg"> / {{ scanProgress.total || '?' }}</span>
+                      <span class="text-surface-500 text-base sm:text-lg"> / {{ scanProgress.total || '?' }}</span>
                     </p>
-                    <p class="text-muted text-xs uppercase tracking-wider mt-1">Processed</p>
+                    <p class="text-muted text-[10px] sm:text-xs uppercase tracking-wider mt-0.5 sm:mt-1">Processed</p>
                   </div>
                 </div>
               </div>
@@ -588,7 +588,7 @@
 
               <!-- Terminal -->
               <div
-                class="bg-black/80 border border-surface-800 rounded-lg p-4 font-mono text-xs overflow-y-auto h-64 shadow-inner"
+                class="bg-black/80 border border-surface-800 rounded-lg p-3 sm:p-4 font-mono text-[11px] sm:text-xs overflow-y-auto h-52 sm:h-64 shadow-inner"
                 ref="terminalEl">
                 <div v-for="(log, idx) in scanLogs" :key="idx"
                   class="text-surface-300 whitespace-pre-wrap leading-relaxed animate-fade-in">
@@ -599,17 +599,17 @@
               </div>
             </div>
 
-            <!-- Skeleton Loader (Shown while waiting for results) -->
+            <!-- Skeleton Loader (Shown while waiting for initial stream results during first scan) -->
             <div v-if="results.length === 0"
               class="mt-8 max-w-7xl mx-auto card border-surface-700 !p-0 overflow-hidden relative z-10">
               <div class="w-full">
                 <div class="px-4 py-3 border-b border-surface-800 bg-surface-900/50 flex gap-4">
-                  <div class="h-3 w-64 bg-surface-800 rounded animate-pulse"></div>
+                  <div class="h-3 w-36 sm:w-64 bg-surface-800 rounded animate-pulse"></div>
                   <div class="h-3 flex-1 bg-surface-800 rounded animate-pulse"></div>
                   <div class="h-3 w-48 hidden sm:block bg-surface-800 rounded animate-pulse"></div>
                 </div>
-                <div v-for="i in 5" :key="i" class="px-4 py-4 border-b border-surface-800/50 flex gap-4">
-                  <div class="h-4 w-48 bg-surface-800/50 rounded animate-pulse"></div>
+                <div v-for="i in 4" :key="i" class="px-4 py-4 border-b border-surface-800/50 flex gap-4">
+                  <div class="h-4 w-32 sm:w-48 bg-surface-800/50 rounded animate-pulse"></div>
                   <div class="h-4 flex-1 bg-surface-800/50 rounded animate-pulse"></div>
                   <div class="h-5 w-24 hidden sm:block bg-surface-800/50 rounded-full animate-pulse"></div>
                 </div>
@@ -617,26 +617,25 @@
             </div>
           </div>
 
-          <!-- Empty state (not yet scanned) -->
-          <div v-else-if="!results.length" class="animate-fade-in">
-            <div class="card !p-12 flex flex-col items-center gap-4 text-center max-w-lg mx-auto">
-              <div class="w-14 h-14 rounded-2xl bg-surface-800 flex items-center justify-center">
-                <svg class="w-7 h-7 text-surface-500" fill="none" stroke="currentColor" stroke-width="1.5"
+          <!-- Empty state (not scanning and no results yet) -->
+          <div v-else-if="!scanning && !results.length" class="animate-fade-in">
+            <div class="card p-6 sm:!p-12 flex flex-col items-center gap-4 text-center max-w-lg mx-auto">
+              <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-surface-800 flex items-center justify-center">
+                <svg class="w-6 h-6 sm:w-7 sm:h-7 text-surface-500" fill="none" stroke="currentColor" stroke-width="1.5"
                   viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round"
                     d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
               </div>
               <div>
-                <p class="text-base font-medium text-surface-100">No emails scanned yet</p>
-                <p class="text-muted mt-1">Click <strong class="text-surface-300">Scan Gmail</strong> to analyse your
-                  inbox
-                  with the ML model.</p>
+                <p class="text-base sm:text-lg font-medium text-surface-100">No emails scanned yet</p>
+                <p class="text-muted text-xs sm:text-sm mt-1">Click <strong class="text-surface-300">Scan Gmail</strong> to analyse your
+                  inbox with the ML model.</p>
               </div>
-              <div class="flex flex-wrap items-center justify-center gap-3">
-                <button id="btn-scan-empty" class="btn-primary" @click="startScan">Scan Gmail</button>
+              <div class="flex flex-col sm:flex-row items-center justify-center gap-3 w-full sm:w-auto">
+                <button id="btn-scan-empty" class="btn-primary w-full sm:w-auto justify-center" @click="startScan">Scan Gmail</button>
                 <button id="btn-delete-labels-empty"
-                  class="px-4 py-2.5 rounded-xl text-sm font-medium border transition-all flex items-center justify-center gap-2 bg-red-950/40 hover:bg-red-900/60 border-red-800/60 text-red-300 hover:text-white shadow-lg hover:shadow-red-900/30"
+                  class="w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs sm:text-sm font-medium border transition-all flex items-center justify-center gap-2 bg-red-950/40 hover:bg-red-900/60 border-red-800/60 text-red-300 hover:text-white shadow-lg hover:shadow-red-900/30"
                   @click="showDeleteModal = true">
                   <svg class="w-4 h-4 text-red-400" fill="none" stroke="currentColor" stroke-width="2"
                     viewBox="0 0 24 24">
@@ -649,110 +648,118 @@
             </div>
           </div>
 
-          <!-- Results -->
-          <template v-else-if="!scanning && results.length > 0">
+          <!-- Results (shown whenever results exist, whether during or after scan) -->
+          <div v-if="results.length > 0" class="animate-fade-in space-y-4 sm:space-y-6">
             <!-- Stats strip -->
             <ScanStats v-if="scanSummary" :summary="scanSummary" :active-filter="activeFilter"
-              class="mb-6 animate-slide-up" @filter="(l) => (activeFilter = l)" />
+              class="mb-4 sm:mb-6 animate-slide-up" @filter="(l) => (activeFilter = l)" />
 
             <!-- Controls row -->
-            <div class="flex flex-col sm:flex-row gap-3 mb-4">
+            <div class="flex flex-col sm:flex-row gap-2.5 sm:gap-3 mb-4">
               <!-- Search -->
-              <div class="relative flex-1">
+              <div class="relative flex-1 w-full">
                 <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-surface-500 pointer-events-none"
                   fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round"
                     d="M21 21l-4.35-4.35m0 0A7 7 0 104 10a7 7 0 0012.65 6.65z" />
                 </svg>
-                <input id="input-search" v-model="searchQuery" class="input pl-9"
+                <input id="input-search" v-model="searchQuery" class="input pl-9 text-xs sm:text-sm py-2 sm:py-2.5"
                   placeholder="Search sender or subject…" type="text" />
               </div>
 
               <!-- Filter select -->
-              <select id="select-filter" v-model="activeFilter" class="input sm:w-44">
+              <select id="select-filter" v-model="activeFilter" class="input w-full sm:w-44 text-xs sm:text-sm py-2 sm:py-2.5">
                 <option value="">All labels</option>
                 <option v-for="l in LABEL_ORDER" :key="l" :value="l">{{ l }}</option>
               </select>
 
-              <!-- Scan Gmail button in results toolbar -->
-              <button id="btn-scan-results"
-                class="px-4 py-2 rounded-xl text-sm font-medium border transition-all flex items-center justify-center gap-2 bg-brand-600/30 hover:bg-brand-600/50 border-brand-500/60 text-white shadow-lg hover:shadow-brand-600/20 shrink-0"
-                @click="startScan">
-                <svg class="w-4 h-4 text-brand-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                  stroke-width="2">
-                  <path stroke-linecap="round" stroke-linejoin="round"
-                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
-                <span>Scan Gmail</span>
-              </button>
+              <!-- Buttons toolbar row -->
+              <div class="grid grid-cols-2 sm:flex sm:items-center gap-2.5 w-full sm:w-auto">
+                <!-- Scan Gmail button in results toolbar -->
+                <button id="btn-scan-results"
+                  class="px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-medium border transition-all flex items-center justify-center gap-1.5 sm:gap-2 bg-brand-600/30 hover:bg-brand-600/50 border-brand-500/60 text-white shadow-lg hover:shadow-brand-600/20 shrink-0 w-full sm:w-auto"
+                  @click="startScan">
+                  <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-brand-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                    stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  <span class="truncate">Scan Gmail</span>
+                </button>
 
-              <!-- Delete Labels button -->
-              <button id="btn-delete-labels-results"
-                class="px-4 py-2 rounded-xl text-sm font-medium border transition-all flex items-center justify-center gap-2 bg-red-950/40 hover:bg-red-900/60 border-red-800/60 text-red-300 hover:text-white shadow-lg hover:shadow-red-900/30 shrink-0"
-                @click="showDeleteModal = true" :disabled="deletingLabels">
-                <svg class="w-4 h-4 text-red-400" fill="none" stroke="currentColor" stroke-width="2"
-                  viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round"
-                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-                <span>Delete Labels</span>
-              </button>
+                <!-- Delete Labels button -->
+                <button id="btn-delete-labels-results"
+                  class="px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-medium border transition-all flex items-center justify-center gap-2 bg-red-950/40 hover:bg-red-900/60 border-red-800/60 text-red-300 hover:text-white shadow-lg hover:shadow-red-900/30 shrink-0 w-full sm:w-auto"
+                  @click="showDeleteModal = true" :disabled="deletingLabels">
+                  <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-red-400" fill="none" stroke="currentColor" stroke-width="2"
+                    viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                  <span class="truncate">Delete Labels</span>
+                </button>
+              </div>
 
               <!-- Result count -->
-              <p class="text-muted self-center shrink-0 text-sm">
+              <p class="text-muted self-start sm:self-center shrink-0 text-xs sm:text-sm text-surface-400">
                 {{ filteredResults.length }} of {{ results.length }} emails
               </p>
             </div>
 
             <!-- Table -->
-            <div class="card !p-0 overflow-hidden">
-              <table class="w-full text-sm">
-                <thead>
-                  <tr class="border-b border-surface-800 text-left">
-                    <th class="px-4 py-3 text-xs font-medium text-surface-500 uppercase tracking-wider w-64">Sender</th>
-                    <th class="px-4 py-3 text-xs font-medium text-surface-500 uppercase tracking-wider">Subject</th>
-                    <th
-                      class="px-4 py-3 text-xs font-medium text-surface-500 uppercase tracking-wider w-48 hidden sm:table-cell">
-                      Label</th>
-                    <th
-                      class="px-4 py-3 text-xs font-medium text-surface-500 uppercase tracking-wider w-24 text-right hidden md:table-cell">
-                      Confidence</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="(email, index) in paginatedResults" :key="email.msg_id"
-                    class="border-b border-surface-800 last:border-0 hover:bg-surface-800/50 cursor-pointer transition-all duration-200 hover:-translate-y-[1px] animate-fade-in"
-                    @click="selectedEmail = email">
-                    <td class="px-4 py-3 text-surface-300 truncate max-w-0 w-64">
-                      <p class="truncate font-medium text-surface-200">{{ email.sender }}</p>
-                    </td>
-                    <td class="px-4 py-3 text-surface-400 truncate">
-                      {{ email.subject || '(no subject)' }}
-                    </td>
-                    <td class="px-4 py-3 whitespace-nowrap hidden sm:table-cell">
-                      <LabelBadge :label="email.primary_label" />
-                    </td>
-                    <td class="px-4 py-3 text-right text-surface-500 hidden md:table-cell tabular-nums">
-                      {{ email.confidence > 0 ? `${Math.round(email.confidence * 100)}%` : '—' }}
-                    </td>
-                  </tr>
-                  <tr v-if="!filteredResults.length">
-                    <td colspan="4" class="px-4 py-8 text-center text-muted">No emails match your filter.</td>
-                  </tr>
-                </tbody>
-              </table>
+            <div class="card !p-0 overflow-hidden shadow-xl">
+              <div class="overflow-x-auto">
+                <table class="w-full text-xs sm:text-sm">
+                  <thead>
+                    <tr class="border-b border-surface-800 text-left bg-surface-900/80">
+                      <th class="px-3 sm:px-4 py-3 text-[11px] sm:text-xs font-medium text-surface-500 uppercase tracking-wider w-36 sm:w-64">Sender</th>
+                      <th class="px-3 sm:px-4 py-3 text-[11px] sm:text-xs font-medium text-surface-500 uppercase tracking-wider">Subject</th>
+                      <th
+                        class="px-3 sm:px-4 py-3 text-[11px] sm:text-xs font-medium text-surface-500 uppercase tracking-wider w-36 sm:w-48 hidden sm:table-cell">
+                        Label</th>
+                      <th
+                        class="px-3 sm:px-4 py-3 text-[11px] sm:text-xs font-medium text-surface-500 uppercase tracking-wider w-20 sm:w-24 text-right hidden md:table-cell">
+                        Confidence</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="(email, index) in paginatedResults" :key="email.msg_id"
+                      class="border-b border-surface-800 last:border-0 hover:bg-surface-800/50 cursor-pointer transition-all duration-200 hover:-translate-y-[1px] animate-fade-in"
+                      @click="selectedEmail = email">
+                      <td class="px-3 sm:px-4 py-3 text-surface-300 truncate w-36 sm:w-64 max-w-[130px] sm:max-w-none">
+                        <p class="truncate font-medium text-surface-200 text-xs sm:text-sm">{{ email.sender }}</p>
+                      </td>
+                      <td class="px-3 sm:px-4 py-3 text-surface-400 truncate max-w-0">
+                        <div class="flex items-center gap-2">
+                          <span class="truncate text-xs sm:text-sm text-surface-300">{{ email.subject || '(no subject)' }}</span>
+                          <LabelBadge :label="email.primary_label" class="sm:hidden shrink-0 text-[10px] py-0.5 px-1.5" />
+                        </div>
+                      </td>
+                      <td class="px-3 sm:px-4 py-3 whitespace-nowrap hidden sm:table-cell">
+                        <LabelBadge :label="email.primary_label" />
+                      </td>
+                      <td class="px-3 sm:px-4 py-3 text-right text-surface-500 hidden md:table-cell tabular-nums text-xs sm:text-sm">
+                        {{ email.confidence > 0 ? `${Math.round(email.confidence * 100)}%` : '—' }}
+                      </td>
+                    </tr>
+                    <tr v-if="!filteredResults.length">
+                      <td colspan="4" class="px-4 py-8 text-center text-muted">No emails match your filter.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
 
               <!-- Pagination -->
               <div v-if="totalPages > 1"
-                class="flex items-center justify-between px-4 py-3 border-t border-surface-800">
-                <button id="btn-prev-page" class="btn-ghost text-xs" :disabled="page === 1" @click="page--">←
+                class="flex items-center justify-between px-3 sm:px-4 py-3 border-t border-surface-800">
+                <button id="btn-prev-page" class="btn-ghost text-xs py-1 px-2.5" :disabled="page === 1" @click="page--">←
                   Previous</button>
                 <p class="text-muted text-xs">Page {{ page }} of {{ totalPages }}</p>
-                <button id="btn-next-page" class="btn-ghost text-xs" :disabled="page === totalPages"
+                <button id="btn-next-page" class="btn-ghost text-xs py-1 px-2.5" :disabled="page === totalPages"
                   @click="page++">Next →</button>
               </div>
             </div>
-          </template>
+          </div>
         </main>
 
 

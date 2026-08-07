@@ -212,3 +212,20 @@ Add `https://your-app.vercel.app/login` to:
 - `frontend-web/app/components/FallingStarsBg.vue` — Inspira UI HTML5 canvas-based meteor/falling stars background component with mobile fallback viewport dimensions.
 - `frontend-web/app/components/SplashScreen.vue` — Pitch-black fullscreen splash screen incorporating `FallingStarsBg`, centered glowing logo, scramble text, and smooth fade-out.
 - `frontend-web/app/pages/index.vue` & `frontend-web/app/components/WavyBackground.vue` — Fixed mobile right-side text & card cutoff in "How it works" section by shifting timeline line position (`left-5`), reducing container left padding (`pl-12 sm:pl-16`), and wrapping code snippets (`whitespace-pre-wrap break-all`).
+
+---
+
+## Mobile View Alignment & Scan Results Hiding Fix — 2026-08-07
+
+### 11. Mobile View Layout Refinements & Persistent Scan Results (`index.vue`, `EmailDetails.vue`, `ScanStats.vue`)
+
+- **Fixed Scan Gmail Button Hiding Results**:
+  - **Problem**: When user clicked "Scan Gmail" button (`#btn-scan-results` / `#btn-scan-empty`), the results section condition was `!scanning && results.length > 0`. This caused the entire results section (stats strip, filter controls, results table, email detail view) to completely vanish while scanning was active, popping back up only after scanning stopped.
+  - **Fix**: Updated condition to `<div v-if="results.length > 0">`. Now, during scanning, the live terminal card displays at the top, and the results table remains visible directly below it, updating live in real-time as SSE streams results.
+- **Mobile Alignment & Touch Sizing**:
+  - **Scanning Live Terminal State**: Converted top header to responsive `flex-col sm:flex-row`, adjusted card padding (`p-4 sm:p-6 md:!p-8`) to prevent horizontal clipping on 360px-430px viewports.
+  - **Results Toolbar**: Placed "Scan Gmail" and "Delete Labels" buttons in a responsive 2-column grid container (`grid grid-cols-2 sm:flex`), ensuring full touch-target width (`w-full sm:w-auto`), centered text, and balanced text sizes (`text-xs sm:text-sm`).
+  - **Email Table & Mobile Row Badges**: Added horizontal overflow scroll wrapper (`overflow-x-auto`), constrained sender column width on mobile (`w-36 sm:w-64 max-w-[130px] sm:max-w-none`), and rendered an inline `<LabelBadge>` next to subject line on `< sm` screens so mobile users see email categories directly in the list.
+  - **Slide-Over Panel (`EmailDetails.vue`)**: Configured slide panel to `w-full sm:max-w-lg`, added `p-4 sm:p-6` mobile padding, set metadata cards to single column on mobile (`grid-cols-1 sm:grid-cols-2`), and updated stacking order to `z-50`.
+  - **Stats Strip (`ScanStats.vue`)**: Added touch padding (`!p-3 sm:!p-4`), truncated long label names, and tuned grid gaps (`gap-2.5 sm:gap-3`).
+
