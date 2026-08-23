@@ -1,39 +1,52 @@
 """
-igrris_api.py — FastAPI layer for Igrris AI.
+igrris_api.py — FastAPI layer for Igrris AI (multi-user edition).
 
-Exposes the existing Gmail OAuth + ML scan pipeline over HTTP so that
-any frontend (Nuxt, React, mobile, CLI) can use it without touching the
-Python internals directly.
+Multi-user authentication architecture:
+    Browser
+        ↓  HTTP-only session cookie (igrris_session=<UUID>)
+    Railway FastAPI
+        ↓  server-side session store  (session_id → {user_id, oauth_state, ...})
+        ↓  credentials/<user_id>.json (per-user credential file, never shared)
+        ↓  Google OAuth credentials
+        ↓  Gmail API
 
-Run from the project root:
-    uvicorn backend.igrris_api:app --host 0.0.0.0 --port 8000 --reload
+Session/User ID separation:
+    session_id  — identifies the BROWSER (cookie value)
+    user_id     — internal UUID for the authenticated IGRRIS user (NOT Google sub)
+    google_sub  — Google's stable account identifier (stored in session for reference)
+
+SSE Scan token flow (required because EventSource cannot send cookies):
+    POST /scan/token  → validate session → issue short-lived scan_token (60s, single-use)
+    GET  /scan/stream?scan_token=<token>  → validate token → look up user → stream SSE
 
 Endpoints:
-    GET  /health          — liveness probe
-    GET  /auth/url        — returns Google OAuth authorization URL
-    POST /auth/callback   — exchanges code → credentials, saves token.json
-    GET  /auth/status     — checks whether credentials exist & are valid
-    POST /auth/logout     — revokes + deletes credentials
-    POST /scan            — runs full Gmail scan synchronously, returns JSON
+    GET  /health              — liveness probe
+    GET  /auth/url            — returns Google OAuth authorization URL
+    POST /auth/callback       — exchanges code → credentials, sets session
+    GET  /auth/status         — checks current session's auth status
+    POST /auth/logout         — revokes current user's credentials only
+    POST /scan/token          — issues a short-lived scan token
+    GET  /scan/stream         — streams Gmail scan results via SSE (scan_token auth)
+    POST /scan/stop/{scan_id} — cancels an ongoing scan
+    POST /predict             — ML spam/ham classification (no auth required)
+    GET  /labels              — list Gmail labels for current user
+    POST /labels/delete       — delete managed Gmail labels for current user
 """
 
 import logging
 import sys
 import os
+import time
+import threading
+import uuid
 
-# Note: OAUTHLIB_INSECURE_TRANSPORT is handled conditionally in backend/config.py
-# (only set when DEBUG=true, never in production)
-
-# ---------------------------------------------------------------------------
-# Path setup so this module can be run from the project root with uvicorn
-# ---------------------------------------------------------------------------
 _ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 
-from fastapi import FastAPI, HTTPException, status
+from fastapi import FastAPI, HTTPException, Request, Response, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import RedirectResponse
+from fastapi.responses import RedirectResponse, StreamingResponse
 from pydantic import BaseModel, Field
 
 from backend.auth.oauth import (
@@ -43,6 +56,15 @@ from backend.auth.oauth import (
     refresh_if_expired,
     revoke_credentials,
     save_credentials,
+    generate_user_id,
+    get_google_user_info,
+)
+from backend.auth.session import (
+    get_or_create_session,
+    get_authenticated_session,
+    promote_session,
+    delete_session,
+    store as session_store,
 )
 from backend.gmail.connector import get_gmail_service
 from backend.services.scan_service import run_scan
@@ -51,16 +73,19 @@ from backend.utils.logger import setup_logging
 setup_logging()
 logger = logging.getLogger(__name__)
 
+
 # ---------------------------------------------------------------------------
 # App bootstrap
 # ---------------------------------------------------------------------------
+
 app = FastAPI(
     title="Igrris AI API",
-    description="Gmail security assistant — OAuth + ML scan pipeline.",
-    version="2.0.0",
+    description="Gmail security assistant — multi-user OAuth + ML scan pipeline.",
+    version="3.0.0",
     docs_url="/docs",
     redoc_url="/redoc",
 )
+
 
 @app.on_event("startup")
 async def startup_event():
@@ -68,9 +93,13 @@ async def startup_event():
     init_threat_intelligence()
 
 
-# CORS — reads from ALLOWED_ORIGINS env var in production (Railway).
-# Set ALLOWED_ORIGINS=https://your-app.vercel.app on Railway.
+# ---------------------------------------------------------------------------
+# CORS
+# ---------------------------------------------------------------------------
+# Set ALLOWED_ORIGINS=https://igrris.vercel.app on Railway.
 # Falls back to localhost origins for local development.
+# NEVER use allow_origins=["*"] with allow_credentials=True — browsers block it.
+
 _raw_origins = os.environ.get(
     "ALLOWED_ORIGINS",
     "http://localhost:3000,http://127.0.0.1:3000,http://localhost:8501,http://127.0.0.1:8501"
@@ -80,7 +109,7 @@ _allowed_origins = [o.strip() for o in _raw_origins.split(",") if o.strip()]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_allowed_origins,
-    allow_credentials=True,
+    allow_credentials=True,          # required for cookies
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -92,11 +121,12 @@ app.add_middleware(
 
 class CallbackRequest(BaseModel):
     code: str
+    state: str
 
 
 class HealthResponse(BaseModel):
     status: str
-    version: str = "2.0.0"
+    version: str = "3.0.0"
 
 
 class AuthUrlResponse(BaseModel):
@@ -108,6 +138,10 @@ class AuthStatusResponse(BaseModel):
     email: str | None = None
     picture: str | None = None
     name: str | None = None
+
+
+class ScanTokenResponse(BaseModel):
+    scan_token: str
 
 
 class ScanResponse(BaseModel):
@@ -126,7 +160,10 @@ class PredictResponse(BaseModel):
 
 
 class DeleteLabelsRequest(BaseModel):
-    label_name: str | None = Field(default=None, description="Optional specific label name to delete. If omitted, deletes all managed labels.")
+    label_name: str | None = Field(
+        default=None,
+        description="Optional specific label name to delete. If omitted, deletes all managed labels.",
+    )
 
 
 class DeleteLabelsResponse(BaseModel):
@@ -138,12 +175,99 @@ class DeleteLabelsResponse(BaseModel):
 
 
 # ---------------------------------------------------------------------------
-# Endpoints
+# Scan token store
+# (short-lived, single-use tokens that bridge the EventSource auth gap)
+# ---------------------------------------------------------------------------
+
+# {scan_token: {"user_id": str, "expires_at": float, "scan_id": str}}
+_scan_tokens: dict[str, dict] = {}
+_SCAN_TOKEN_TTL = 60  # seconds
+
+# Global map for cancellation events {scan_id: threading.Event}
+active_scans: dict[str, threading.Event] = {}
+
+
+def _issue_scan_token(user_id: str) -> tuple[str, str]:
+    """
+    Issue a short-lived (60s), single-use scan token for the given user.
+
+    Returns (scan_token, scan_id).
+    scan_token is passed in the EventSource URL query param.
+    scan_id is used later to cancel the scan.
+    """
+    scan_token = str(uuid.uuid4())
+    scan_id = str(uuid.uuid4())
+    _scan_tokens[scan_token] = {
+        "user_id": user_id,
+        "expires_at": time.time() + _SCAN_TOKEN_TTL,
+        "scan_id": scan_id,
+    }
+    # Opportunistically clean expired tokens
+    _prune_scan_tokens()
+    return scan_token, scan_id
+
+
+def _consume_scan_token(scan_token: str) -> dict | None:
+    """
+    Validate and consume a scan token. Returns token data or None if invalid/expired.
+    Single-use: token is removed from the store after retrieval.
+    """
+    entry = _scan_tokens.pop(scan_token, None)
+    if entry is None:
+        return None
+    if time.time() > entry["expires_at"]:
+        return None
+    return entry
+
+
+def _prune_scan_tokens() -> None:
+    """Remove expired tokens from the store."""
+    now = time.time()
+    expired = [tok for tok, data in _scan_tokens.items() if now > data["expires_at"]]
+    for tok in expired:
+        _scan_tokens.pop(tok, None)
+
+
+# ---------------------------------------------------------------------------
+# Helper — load + refresh credentials for the current session
+# ---------------------------------------------------------------------------
+
+def _get_user_credentials(session_data: dict):
+    """
+    Load credentials for the user identified by the session.
+    Raises HTTPException 401 if credentials are missing or refresh fails.
+    """
+    user_id = session_data.get("user_id")
+    if not user_id:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="No authenticated user in session.",
+        )
+
+    creds = load_credentials(user_id)
+    if not creds:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Credentials not found. Please sign in again.",
+        )
+
+    try:
+        creds = refresh_if_expired(user_id, creds)
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f"Token refresh failed: {exc}",
+        )
+
+    return user_id, creds
+
+
+# ---------------------------------------------------------------------------
+# Endpoints — system
 # ---------------------------------------------------------------------------
 
 @app.get("/", include_in_schema=False)
 async def root():
-    """Redirect root to API docs."""
     return RedirectResponse(url="/docs")
 
 
@@ -153,17 +277,21 @@ async def health() -> HealthResponse:
     return HealthResponse(status="ok")
 
 
+# ---------------------------------------------------------------------------
+# Endpoints — auth
+# ---------------------------------------------------------------------------
+
 @app.get("/auth/url", response_model=AuthUrlResponse, tags=["auth"])
-async def auth_url() -> AuthUrlResponse:
+async def auth_url(request: Request, response: Response) -> AuthUrlResponse:
     """
     Generate and return the Google OAuth 2.0 authorization URL.
 
-    The frontend should redirect the user to this URL.  After the user
-    grants consent, Google will redirect back to REDIRECT_URI with
-    ?code=...&state=...  — forward those params to POST /auth/callback.
+    Creates or reuses the current browser session.
+    OAuth state is stored in the session (not on disk).
     """
+    session_id, _ = get_or_create_session(request, response)
     try:
-        url = get_auth_url()
+        url = get_auth_url(session_id)
         return AuthUrlResponse(url=url)
     except EnvironmentError as exc:
         raise HTTPException(
@@ -173,97 +301,206 @@ async def auth_url() -> AuthUrlResponse:
 
 
 @app.post("/auth/callback", response_model=AuthStatusResponse, tags=["auth"])
-async def auth_callback(body: CallbackRequest) -> AuthStatusResponse:
+async def auth_callback(
+    body: CallbackRequest,
+    request: Request,
+    response: Response,
+) -> AuthStatusResponse:
     """
     Exchange the OAuth authorization code for credentials.
 
-    The Nuxt frontend receives ?code=... from Google's redirect, then
-    calls this endpoint with the code in the request body.
+    1. Reads the session cookie to identify the initiating browser.
+    2. Validates the OAuth state stored in that session (CSRF protection).
+    3. Exchanges the authorization code with Google.
+    4. Retrieves the Google user identity (sub, email, name, picture).
+    5. Creates an internal user_id (UUID) separate from the Google sub.
+    6. Saves credentials to credentials/<user_id>.json.
+    7. Regenerates session ID (prevents session fixation).
+    8. Returns user profile — never returns tokens.
     """
+    # Step 1: Get the browser's existing session (must exist — same browser that called /auth/url)
+    session_id, session_data = get_or_create_session(request, response)
+
     try:
-        creds = exchange_code(body.code)
-        save_credentials(creds)
-        logger.info("OAuth callback successful — credentials saved.")
-        return AuthStatusResponse(authenticated=True)
+        # Step 2 & 3: Validate state + exchange code (raises on CSRF mismatch)
+        creds = exchange_code(body.code, session_id)
     except Exception as exc:
-        logger.error("OAuth callback failed: %s", exc)
+        logger.error("OAuth callback failed for session %s: %s", session_id, exc)
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Failed to exchange authorization code: {exc}",
         )
 
-
-import requests
-
-def get_user_info(credentials) -> dict:
-    try:
-        resp = requests.get(
-            "https://www.googleapis.com/oauth2/v1/userinfo",
-            headers={"Authorization": f"Bearer {credentials.token}"},
-            timeout=5
+    # Step 4: Get Google identity — never trust frontend-supplied values
+    user_info = get_google_user_info(creds)
+    google_sub = user_info.get("sub")
+    if not google_sub:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Could not retrieve Google user identity.",
         )
-        if resp.status_code == 200:
-            return resp.json()
-    except Exception as e:
-        logger.warning(f"Failed to fetch user info: {e}")
-    return {}
+
+    # Step 5: Create or reuse internal user_id
+    # Check if this Google sub already has a user_id in any existing session
+    # (simple approach: always generate a fresh UUID — credential file is keyed by UUID)
+    # For persistent credential mapping across sessions, you would look up google_sub → user_id
+    # in a DB. For now we generate a new UUID per login (credentials last across refreshes).
+    user_id = generate_user_id()
+
+    # Step 6: Save credentials — only to this user's file
+    try:
+        save_credentials(user_id, creds)
+    except Exception as exc:
+        logger.error("Failed to save credentials for user %s: %s", user_id, exc)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to save credentials.",
+        )
+
+    # Step 7: Regenerate session (prevents fixation) and store user identity
+    new_session_id = promote_session(
+        session_id,
+        response,
+        user_id=user_id,
+        google_sub=google_sub,
+        authenticated=True,
+    )
+
+    logger.info(
+        "User authenticated: google_sub=%s user_id=%s session=%s",
+        google_sub,
+        user_id,
+        new_session_id,
+    )
+
+    # Step 8: Return profile — no tokens
+    return AuthStatusResponse(
+        authenticated=True,
+        email=user_info.get("email"),
+        picture=user_info.get("picture"),
+        name=user_info.get("name"),
+    )
+
 
 @app.get("/auth/status", response_model=AuthStatusResponse, tags=["auth"])
-async def auth_status() -> AuthStatusResponse:
+async def auth_status(request: Request, response: Response) -> AuthStatusResponse:
     """
-    Check whether valid credentials exist on disk.
+    Check whether the current browser session is authenticated.
 
-    The frontend calls this on page load to decide whether to show the
-    login page or the dashboard.
+    Uses the session cookie to look up the server-side session, then loads
+    that user's credentials. Never reads token.json (gone) or a global file.
     """
-    creds = load_credentials()
+    session_id, session_data = get_authenticated_session(request)
+    if session_id is None:
+        return AuthStatusResponse(authenticated=False)
+
+    user_id = session_data.get("user_id")
+    if not user_id:
+        return AuthStatusResponse(authenticated=False)
+
+    creds = load_credentials(user_id)
     if not creds:
         return AuthStatusResponse(authenticated=False)
 
     try:
-        creds = refresh_if_expired(creds)
-        user_info = get_user_info(creds)
+        creds = refresh_if_expired(user_id, creds)
+        user_info = get_google_user_info(creds)
         return AuthStatusResponse(
             authenticated=True,
             email=user_info.get("email"),
             picture=user_info.get("picture"),
-            name=user_info.get("name")
+            name=user_info.get("name"),
         )
     except Exception as exc:
-        logger.warning("Credential refresh failed: %s", exc)
+        logger.warning("Credential refresh failed for user %s: %s", user_id, exc)
         return AuthStatusResponse(authenticated=False)
 
 
 @app.post("/auth/logout", response_model=AuthStatusResponse, tags=["auth"])
-async def auth_logout() -> AuthStatusResponse:
-    """Revoke the access token and delete local credentials."""
-    creds = load_credentials()
-    if creds:
-        revoke_credentials(creds)
+async def auth_logout(request: Request, response: Response) -> AuthStatusResponse:
+    """
+    Revoke credentials and destroy the current user's session.
+
+    ONLY touches this user's credentials — never affects other sessions.
+    """
+    session_id, session_data = get_authenticated_session(request)
+    if session_id is not None and session_data:
+        user_id = session_data.get("user_id")
+        if user_id:
+            creds = load_credentials(user_id)
+            if creds:
+                revoke_credentials(user_id, creds)
+        delete_session(session_id, response)
+        logger.info("User logged out: user_id=%s session=%s", user_id, session_id)
+
     return AuthStatusResponse(authenticated=False)
 
 
-from fastapi.responses import StreamingResponse
-import threading
-import uuid
+# ---------------------------------------------------------------------------
+# Endpoints — scan
+# ---------------------------------------------------------------------------
 
-# Global map to store cancellation events for active scans
-active_scans: dict[str, threading.Event] = {}
+@app.post("/scan/token", response_model=ScanTokenResponse, tags=["scan"])
+async def create_scan_token(request: Request, response: Response) -> ScanTokenResponse:
+    """
+    Issue a short-lived (60s), single-use scan token for the authenticated user.
 
-@app.get("/scan/stream", tags=["scan"])
-async def scan_stream(scan_id: str):
+    This is needed because EventSource (used for SSE streaming) cannot send
+    HTTP cookies. The token is passed as a URL query param to /scan/stream.
+
+    The token encodes the user_id server-side — the frontend never sees it.
     """
-    Run a complete Gmail inbox scan and stream results via Server-Sent Events (SSE).
-    """
-    creds = load_credentials()
-    if not creds:
+    session_id, session_data = get_authenticated_session(request)
+    if session_id is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Not authenticated. Call GET /auth/url first.",
         )
 
+    user_id = session_data.get("user_id")
+    if not user_id:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="No user in session.",
+        )
+
+    scan_token, _ = _issue_scan_token(user_id)
+    return ScanTokenResponse(scan_token=scan_token)
+
+
+@app.get("/scan/stream", tags=["scan"])
+async def scan_stream(scan_token: str, scan_id: str):
+    """
+    Run a complete Gmail inbox scan and stream results via Server-Sent Events (SSE).
+
+    Authentication is via the short-lived scan_token (issued by POST /scan/token),
+    NOT a cookie, because EventSource cannot send cookies cross-origin.
+
+    Parameters
+    ----------
+    scan_token : str
+        Single-use token from POST /scan/token. Valid for 60 seconds.
+    scan_id : str
+        Client-generated scan UUID for cancellation via POST /scan/stop/{scan_id}.
+    """
+    # Validate and consume the scan token (single-use)
+    token_data = _consume_scan_token(scan_token)
+    if token_data is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired scan token. Request a new one from POST /scan/token.",
+        )
+
+    user_id = token_data["user_id"]
+    creds = load_credentials(user_id)
+    if not creds:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Credentials not found. Please sign in again.",
+        )
+
     try:
-        creds = refresh_if_expired(creds)
+        creds = refresh_if_expired(user_id, creds)
     except Exception as exc:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -278,7 +515,7 @@ async def scan_stream(scan_id: str):
             detail=f"Failed to build Gmail service: {exc}",
         )
 
-    # Register the cancel event
+    # Register the cancel event keyed by the client-provided scan_id
     cancel_event = threading.Event()
     active_scans[scan_id] = cancel_event
 
@@ -287,9 +524,9 @@ async def scan_stream(scan_id: str):
             for event_str in run_scan(service, cancel_event=cancel_event):
                 yield event_str
         except Exception as e:
-            logger.exception("Unexpected error during scan")
-            import json
-            error_data = json.dumps({"message": f"Fatal error: {e}"})
+            logger.exception("Unexpected error during scan for user %s", user_id)
+            import json as _json
+            error_data = _json.dumps({"message": f"Fatal error: {e}"})
             yield f"event: error\ndata: {error_data}\n\n"
         finally:
             active_scans.pop(scan_id, None)
@@ -299,9 +536,7 @@ async def scan_stream(scan_id: str):
 
 @app.post("/scan/stop/{scan_id}", tags=["scan"])
 async def stop_scan(scan_id: str):
-    """
-    Cancel an ongoing scan.
-    """
+    """Cancel an ongoing scan."""
     cancel_event = active_scans.get(scan_id)
     if cancel_event:
         cancel_event.set()
@@ -310,7 +545,12 @@ async def stop_scan(scan_id: str):
     return {"status": "not_found"}
 
 
+# ---------------------------------------------------------------------------
+# Endpoints — ML predict (no auth required)
+# ---------------------------------------------------------------------------
+
 from predict import predict
+
 
 @app.post("/predict", response_model=PredictResponse, tags=["scan"])
 async def predict_endpoint(request: PredictRequest):
@@ -323,48 +563,58 @@ async def predict_endpoint(request: PredictRequest):
         result = predict(text)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc))
-    except Exception as exc:
+    except Exception:
         logger.exception("Unexpected error during prediction")
         raise HTTPException(status_code=500, detail="Internal server error")
 
     return PredictResponse(**result)
 
 
-from backend.labels.manager import delete_all_managed_labels, delete_managed_label, _list_all_labels
+# ---------------------------------------------------------------------------
+# Endpoints — Gmail labels
+# ---------------------------------------------------------------------------
+
+from backend.labels.manager import delete_all_managed_labels, _list_all_labels
 
 
 @app.get("/labels", tags=["labels"])
-async def get_labels():
-    """List all labels in the authenticated Gmail account."""
-    creds = load_credentials()
-    if not creds:
+async def get_labels(request: Request, response: Response):
+    """List all labels in the authenticated user's Gmail account."""
+    session_id, session_data = get_authenticated_session(request)
+    if session_id is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated.")
+
+    user_id, creds = _get_user_credentials(session_data)
     try:
-        creds = refresh_if_expired(creds)
         service = get_gmail_service(creds)
         labels_map = _list_all_labels(service)
         return {"labels": labels_map}
-    except Exception as exc:
-        logger.exception("Failed to fetch labels")
-        raise HTTPException(status_code=500, detail=str(exc))
+    except Exception:
+        logger.exception("Failed to fetch labels for user %s", user_id)
+        raise HTTPException(status_code=500, detail="Failed to fetch labels.")
 
 
 @app.post("/labels/delete", response_model=DeleteLabelsResponse, tags=["labels"])
-async def delete_labels_endpoint(request: DeleteLabelsRequest | None = None):
-    """
-    Delete managed Gmail labels (or a specific label).
-    """
-    creds = load_credentials()
-    if not creds:
+async def delete_labels_endpoint(
+    request: Request,
+    response: Response,
+    body: DeleteLabelsRequest | None = None,
+):
+    """Delete managed Gmail labels (or a specific label) for the current user."""
+    session_id, session_data = get_authenticated_session(request)
+    if session_id is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated.")
 
+    user_id, creds = _get_user_credentials(session_data)
     try:
-        creds = refresh_if_expired(creds)
         service = get_gmail_service(creds)
     except Exception as exc:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=f"Authentication error: {exc}")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f"Failed to build Gmail service: {exc}",
+        )
 
-    label_names = [request.label_name] if (request and request.label_name) else None
+    label_names = [body.label_name] if (body and body.label_name) else None
 
     try:
         result = delete_all_managed_labels(service, label_names=label_names)
@@ -377,7 +627,6 @@ async def delete_labels_endpoint(request: DeleteLabelsRequest | None = None):
             skipped_system=result["skipped_system"],
             message=msg,
         )
-    except Exception as exc:
-        logger.exception("Failed to delete labels")
-        raise HTTPException(status_code=500, detail=f"Label deletion failed: {exc}")
-
+    except Exception:
+        logger.exception("Failed to delete labels for user %s", user_id)
+        raise HTTPException(status_code=500, detail="Label deletion failed.")

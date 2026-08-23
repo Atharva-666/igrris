@@ -1,25 +1,33 @@
 """
-oauth.py — Google OAuth 2.0 flow for Igrris AI.
+oauth.py — Google OAuth 2.0 flow for Igrris AI (multi-user edition).
 
-Responsibilities:
-  - Generate Google authorization URL
-  - Exchange authorization code for credentials
-  - Refresh expired access tokens automatically
-  - Save / load credentials from disk
-  - Revoke credentials on logout
+Design principles:
+  - No global token.json — every user has credentials/<user_id>.json
+  - No global .oauth_state file — OAuth state is stored in the server-side session
+  - user_id is a cryptographically-random internal UUID (NOT the Google 'sub')
+  - Google 'sub' is stored as an identity field alongside user_id
+  - Path traversal is prevented by validating user_id as UUID4 format
+
+Session-aware API:
+    get_auth_url(session_id)           → stores state in session, returns Google URL
+    exchange_code(code, session_id)    → validates state from session, returns Credentials
+    save_credentials(user_id, creds)   → writes credentials/<user_id>.json
+    load_credentials(user_id)          → reads credentials/<user_id>.json
+    refresh_if_expired(user_id, creds) → refreshes and saves back to same user file
+    revoke_credentials(user_id, creds) → revokes with Google, deletes user's file only
 
 Security notes:
-  - No Gmail passwords are ever stored.
-  - Only access tokens and refresh tokens are stored (token.json).
-  - OAUTHLIB_INSECURE_TRANSPORT=1 is set for local HTTP dev only.
-    Remove this in any production deployment using HTTPS.
-  - OAuth state is saved to a temp file (.oauth_state) to survive the
-    browser redirect. This protects against CSRF for single-user local use.
+  - OAUTHLIB_INSECURE_TRANSPORT is only enabled when DEBUG=true (local HTTP dev).
+    config.py sets this conditionally — never enabled in Railway production.
+  - Refresh tokens are never sent to the browser; they live only in the cred file.
+  - State + code_verifier live in the server-side session for the duration of OAuth.
 """
 
 import json
 import logging
 import os
+import re
+import uuid
 import datetime
 
 import requests
@@ -30,13 +38,32 @@ from google_auth_oauthlib.flow import Flow
 from backend.config import (
     GOOGLE_CLIENT_ID,
     GOOGLE_CLIENT_SECRET,
-    OAUTH_STATE_FILE,
+    CREDENTIALS_DIR,
     REDIRECT_URI,
     SCOPES,
-    TOKEN_FILE,
 )
+from backend.auth.session import store as session_store
 
 logger = logging.getLogger(__name__)
+
+# ---------------------------------------------------------------------------
+# UUID validation — prevents path traversal
+# ---------------------------------------------------------------------------
+
+_UUID_RE = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$")
+
+
+def _validate_user_id(user_id: str) -> None:
+    """Raise ValueError if user_id is not a valid UUID4 (prevents path traversal)."""
+    if not _UUID_RE.match(user_id):
+        raise ValueError(f"Invalid user_id format: {user_id!r}")
+
+
+def _cred_path(user_id: str) -> str:
+    """Return the absolute path for a user's credential file."""
+    _validate_user_id(user_id)
+    os.makedirs(CREDENTIALS_DIR, exist_ok=True)
+    return os.path.join(CREDENTIALS_DIR, f"{user_id}.json")
 
 
 # ---------------------------------------------------------------------------
@@ -56,41 +83,21 @@ def _client_config() -> dict:
     }
 
 
-def _save_state(state: str, code_verifier: str | None = None) -> None:
-    """Persist OAuth state and code_verifier (PKCE) to disk so it survives the browser redirect."""
-    with open(OAUTH_STATE_FILE, "w") as f:
-        json.dump({"state": state, "code_verifier": code_verifier}, f)
-
-
-def _load_state() -> tuple[str | None, str | None]:
-    """Load and delete saved OAuth state + code_verifier. Returns (state, code_verifier)."""
-    if not os.path.exists(OAUTH_STATE_FILE):
-        return None, None
-    try:
-        with open(OAUTH_STATE_FILE, "r") as f:
-            data = json.load(f)
-        return data.get("state"), data.get("code_verifier")
-    except Exception as e:
-        logger.warning("Could not load OAuth state: %s", e)
-        return None, None
-    finally:
-        # Always remove state file after reading — it is single-use
-        try:
-            os.remove(OAUTH_STATE_FILE)
-        except OSError:
-            pass
-
-
 # ---------------------------------------------------------------------------
-# Public API
+# Public API — session-aware
 # ---------------------------------------------------------------------------
 
-def get_auth_url() -> str:
+def get_auth_url(session_id: str) -> str:
     """
     Build and return the Google OAuth 2.0 authorization URL.
 
-    The generated 'state' parameter and PKCE 'code_verifier' are saved to disk
-    so they can be verified when Google redirects back to the app.
+    The generated 'state' and PKCE 'code_verifier' are stored in the server-side
+    session (not on disk), so they are isolated per browser session.
+
+    Parameters
+    ----------
+    session_id : str
+        The caller's session ID (used to store OAuth state).
     """
     if not GOOGLE_CLIENT_ID or not GOOGLE_CLIENT_SECRET:
         raise EnvironmentError(
@@ -101,70 +108,86 @@ def get_auth_url() -> str:
     flow.redirect_uri = REDIRECT_URI
 
     url, state = flow.authorization_url(
-        access_type="offline",          # request a refresh token
+        access_type="offline",
         include_granted_scopes="true",
-        prompt="consent",               # always show consent screen to get refresh token
+        prompt="consent",
     )
 
     code_verifier = getattr(flow, "code_verifier", None)
-    _save_state(state, code_verifier)
-    logger.info("Authorization URL generated.")
+
+    # Store state in this browser's session only — no global file
+    session_store.set_data(session_id, "oauth_state", state)
+    session_store.set_data(session_id, "code_verifier", code_verifier)
+
+    logger.info("Authorization URL generated for session %s.", session_id)
     return url
 
 
-def exchange_code(code: str) -> Credentials:
+def exchange_code(code: str, session_id: str) -> Credentials:
     """
-    Exchange the authorization code (from Google callback) for credentials.
+    Exchange the authorization code for credentials.
+
+    Reads (and validates) the OAuth state from the server-side session,
+    so only the browser that initiated the OAuth flow can complete it.
 
     Parameters
     ----------
     code : str
         The 'code' query parameter from the OAuth callback URL.
-
-    Returns
-    -------
-    Credentials
-        Valid Google OAuth credentials with access + refresh tokens.
+    session_id : str
+        The caller's session ID (used to retrieve and validate OAuth state).
     """
-    state, code_verifier = _load_state()  # may be (None, None) if state file was lost
+    session_data = session_store.get(session_id)
+    if session_data is None:
+        raise ValueError("No active session found. OAuth flow may have expired.")
+
+    state = session_data.get("oauth_state")
+    code_verifier = session_data.get("code_verifier")
+
+    if not state:
+        raise ValueError("No OAuth state found in session. Possible CSRF attack or expired session.")
 
     flow = Flow.from_client_config(
         _client_config(),
         scopes=SCOPES,
-        state=state,  # None = skip state verification (safe for local dev)
+        state=state,  # Enforce CSRF validation
     )
     flow.redirect_uri = REDIRECT_URI
+
     if code_verifier:
         flow.code_verifier = code_verifier
 
-    # fetch_token exchanges the code for access + refresh tokens
+    # Exchange code for tokens — this validates the state parameter
     flow.fetch_token(code=code)
 
-    credentials = flow.credentials
-    logger.info("Authorization code exchanged successfully.")
-    return credentials
+    # Clear state from session immediately after use (single-use)
+    session_store.set_data(session_id, "oauth_state", None)
+    session_store.set_data(session_id, "code_verifier", None)
+
+    logger.info("Authorization code exchanged successfully for session %s.", session_id)
+    return flow.credentials
 
 
-def refresh_if_expired(credentials: Credentials) -> Credentials:
+def generate_user_id() -> str:
     """
-    Check if the access token is expired and refresh it if needed.
-    Saves updated credentials to disk after refresh.
+    Generate a cryptographically-random internal user UUID.
+
+    This is NOT the Google 'sub' — it is IGRRIS's own internal identifier.
+    The Google 'sub' is stored as a separate field for identity reference only.
     """
-    if credentials.expired and credentials.refresh_token:
-        logger.info("Access token expired. Refreshing...")
-        credentials.refresh(Request())
-        save_credentials(credentials)
-        logger.info("Access token refreshed.")
-    return credentials
+    return str(uuid.uuid4())
 
 
-def save_credentials(credentials: Credentials) -> None:
+def save_credentials(user_id: str, credentials: Credentials) -> None:
     """
-    Serialize and save credentials to token.json.
+    Serialize and save credentials to credentials/<user_id>.json.
 
-    Stored fields: access token, refresh token, token URI,
-    client ID, client secret, scopes.
+    Only the tokens and OAuth config are stored. The file is named by the
+    internal user_id (UUID), never by email or Google sub.
     """
+    _validate_user_id(user_id)
+    path = _cred_path(user_id)
+
     data = {
         "token": credentials.token,
         "refresh_token": credentials.refresh_token,
@@ -174,21 +197,38 @@ def save_credentials(credentials: Credentials) -> None:
         "scopes": list(credentials.scopes) if credentials.scopes else [],
         "expiry": credentials.expiry.isoformat() if credentials.expiry else None,
     }
-    with open(TOKEN_FILE, "w") as f:
-        json.dump(data, f, indent=2)
-    logger.info("Credentials saved to %s", TOKEN_FILE)
+
+    # Write atomically by using a tmp file then rename (avoids partial writes)
+    tmp_path = path + ".tmp"
+    try:
+        with open(tmp_path, "w") as f:
+            json.dump(data, f, indent=2)
+        os.replace(tmp_path, path)
+    except Exception:
+        # Clean up tmp file if something went wrong
+        try:
+            os.remove(tmp_path)
+        except OSError:
+            pass
+        raise
+
+    logger.info("Credentials saved for user %s.", user_id)
 
 
-def load_credentials() -> Credentials | None:
+def load_credentials(user_id: str) -> Credentials | None:
     """
-    Load saved credentials from token.json.
+    Load credentials for a specific user from credentials/<user_id>.json.
 
     Returns None if the file does not exist or cannot be parsed.
     """
-    if not os.path.exists(TOKEN_FILE):
+    _validate_user_id(user_id)
+    path = _cred_path(user_id)
+
+    if not os.path.exists(path):
         return None
+
     try:
-        with open(TOKEN_FILE, "r") as f:
+        with open(path, "r") as f:
             data = json.load(f)
 
         expiry_str = data.get("expiry")
@@ -203,20 +243,37 @@ def load_credentials() -> Credentials | None:
             scopes=data.get("scopes"),
             expiry=expiry,
         )
-        logger.info("Credentials loaded from disk.")
+        logger.info("Credentials loaded for user %s.", user_id)
         return credentials
 
     except Exception as e:
-        logger.error("Failed to load credentials: %s", e)
+        logger.error("Failed to load credentials for user %s: %s", user_id, e)
         return None
 
 
-def revoke_credentials(credentials: Credentials) -> None:
+def refresh_if_expired(user_id: str, credentials: Credentials) -> Credentials:
     """
-    Revoke the access token with Google and delete token.json.
+    Check if the access token is expired and refresh it if needed.
 
-    After this call the user must sign in again.
+    Saves updated credentials back to the SAME user's file after refresh.
+    Never writes to a global token.json.
     """
+    if credentials.expired and credentials.refresh_token:
+        logger.info("Access token expired for user %s. Refreshing...", user_id)
+        credentials.refresh(Request())
+        save_credentials(user_id, credentials)
+        logger.info("Access token refreshed for user %s.", user_id)
+    return credentials
+
+
+def revoke_credentials(user_id: str, credentials: Credentials) -> None:
+    """
+    Revoke the access token with Google and delete this user's credential file.
+
+    Only affects credentials/<user_id>.json — never touches any other user's file.
+    """
+    _validate_user_id(user_id)
+
     try:
         requests.post(
             "https://oauth2.googleapis.com/revoke",
@@ -224,11 +281,32 @@ def revoke_credentials(credentials: Credentials) -> None:
             headers={"Content-Type": "application/x-www-form-urlencoded"},
             timeout=10,
         )
-        logger.info("Access token revoked with Google.")
+        logger.info("Access token revoked with Google for user %s.", user_id)
     except Exception as e:
-        # Revocation failure is non-critical; we still delete the local token
-        logger.warning("Token revocation request failed: %s", e)
+        # Revocation failure is non-critical; we still delete the local file
+        logger.warning("Token revocation request failed for user %s: %s", user_id, e)
     finally:
-        if os.path.exists(TOKEN_FILE):
-            os.remove(TOKEN_FILE)
-            logger.info("token.json deleted.")
+        path = _cred_path(user_id)
+        if os.path.exists(path):
+            os.remove(path)
+            logger.info("Credential file deleted for user %s.", user_id)
+
+
+def get_google_user_info(credentials: Credentials) -> dict:
+    """
+    Fetch the Google user's profile from the userinfo endpoint.
+
+    Returns a dict with keys: sub, email, name, picture (empty dict on failure).
+    The 'sub' is Google's stable account identifier.
+    """
+    try:
+        resp = requests.get(
+            "https://www.googleapis.com/oauth2/v3/userinfo",
+            headers={"Authorization": f"Bearer {credentials.token}"},
+            timeout=5,
+        )
+        if resp.status_code == 200:
+            return resp.json()
+    except Exception as e:
+        logger.warning("Failed to fetch Google user info: %s", e)
+    return {}

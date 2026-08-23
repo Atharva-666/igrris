@@ -21,8 +21,9 @@ GOOGLE_CLIENT_ID: str = os.environ.get("GOOGLE_CLIENT_ID", "")
 GOOGLE_CLIENT_SECRET: str = os.environ.get("GOOGLE_CLIENT_SECRET", "")
 
 # Redirect URI must EXACTLY match what is registered in Google Cloud Console.
-# For local Streamlit: http://localhost:8501
-REDIRECT_URI: str = os.environ.get("REDIRECT_URI", "http://localhost:8501")
+# For production (Railway backend):  https://<railway-domain>/auth/callback
+# For local dev:                     http://localhost:8000/auth/callback
+REDIRECT_URI: str = os.environ.get("REDIRECT_URI", "http://localhost:8000/auth/callback")
 
 # ---------------------------------------------------------------------------
 # Gmail OAuth scopes (minimum required)
@@ -38,10 +39,30 @@ SCOPES: list[str] = [
 ]
 
 # ---------------------------------------------------------------------------
-# File & Log paths (relative to project root)
+# Per-user credential storage directory
+#
+# CREDENTIALS_DIR is configurable via environment variable so Railway volumes
+# can be mounted at any path.
+#
+# Railway production:  Set CREDENTIALS_DIR=/app/credentials
+#                      (mount a Railway persistent Volume there for persistence)
+# Local dev:           Defaults to <project_root>/credentials/
+#
+# NEVER use a single global token.json — each user gets their own file.
 # ---------------------------------------------------------------------------
-TOKEN_FILE: str = os.path.join(_ROOT, "token.json")
-OAUTH_STATE_FILE: str = os.path.join(_ROOT, ".oauth_state")
+CREDENTIALS_DIR: str = os.environ.get(
+    "CREDENTIALS_DIR",
+    os.path.join(_ROOT, "credentials"),
+)
+
+# ---------------------------------------------------------------------------
+# Session secret (for future HMAC signing of session tokens if needed)
+# ---------------------------------------------------------------------------
+SESSION_SECRET: str = os.environ.get("SESSION_SECRET", "")
+
+# ---------------------------------------------------------------------------
+# Log paths (relative to project root)
+# ---------------------------------------------------------------------------
 LOG_DIR: str = os.path.join(_ROOT, "logs")
 LOG_FILE: str = os.path.join(LOG_DIR, "igrris.log")
 

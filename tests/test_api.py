@@ -8,7 +8,7 @@ from fastapi.testclient import TestClient
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from api import app
+from backend.igrris_api import app
 
 client = TestClient(app)
 

@@ -1,13 +1,33 @@
-# Virtual Environments
-venv/
-.venv/
-env/
-ENV/
-env.bak/
-venv.bak/
-.agents/
+# Nuxt
+.output
+.data
+.nuxt
+.nitro
+.cache
+dist
 
-# Python Bytecode & Cache
+# Node
+node_modules
+
+# Logs
+logs
+*.log
+
+# IDE / OS
+.DS_Store
+.fleet
+.idea
+Thumbs.db
+.vscode/
+*.swp
+*.swo
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Python
 __pycache__/
 *.py[cod]
 *$py.class
@@ -16,28 +36,24 @@ __pycache__/
 htmlcov/
 .mypy_cache/
 .ruff_cache/
-
-# Jupyter Notebook Checkpoints
+.venv/
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+*.egg-info/
 .ipynb_checkpoints/
 
-
-# Environment & Secrets
-.env
-.env.*
-*.local
-*.log
-
-# OAuth tokens (contain sensitive credentials — never commit)
+# OAuth / Google credentials
 token.json
 .oauth_state
+credentials/
 
-# Operating System & IDE Files
-.DS_Store
-Thumbs.db
-.vscode/
-.idea/
-*.swp
-*.swo
+# Local secrets
+*.pem
+*.key
 
-# Temporary & Agent Cache
+# Agent / Tool cache
+.agents/
 .gemini/

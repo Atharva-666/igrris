@@ -64,6 +64,6 @@ class TestLabelManagerDelete:
 
 class TestDeleteLabelsEndpoint:
     def test_delete_labels_unauthorized_when_no_creds(self, monkeypatch):
-        monkeypatch.setattr("backend.igrris_api.load_credentials", lambda: None)
+        monkeypatch.setattr("backend.igrris_api.load_credentials", lambda user_id: None)
         response = client.post("/labels/delete", json={})
         assert response.status_code == 401
