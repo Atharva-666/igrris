@@ -8,10 +8,6 @@ from . import cache
 
 logger = logging.getLogger(__name__)
 
-DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
-METADATA_FILE = os.path.join(DATA_DIR, 'metadata.json')
-STATS_FILE = os.path.join(DATA_DIR, 'statistics.json')
-
 FEEDS = {
     "URLhaus": {
         "url": "https://urlhaus.abuse.ch/downloads/text_recent/",
@@ -33,9 +29,10 @@ FEEDS = {
 def check_and_update():
     """Check metadata age and run update if > 24 hours."""
     last_update = 0
+    meta_path = cache.get_data_file_path('metadata.json')
     try:
-        if os.path.exists(METADATA_FILE):
-            with open(METADATA_FILE, 'r') as f:
+        if os.path.exists(meta_path):
+            with open(meta_path, 'r', encoding='utf-8') as f:
                 meta = json.load(f)
                 last_update = meta.get('last_updated_ts', 0)
     except Exception:
@@ -51,7 +48,13 @@ def check_and_update():
         logger.info("Threat feeds are up to date.")
 
 def run_update() -> bool:
-    """Download, parse, and replace files safely."""
+    """Download, parse, and replace files safely inside RUNTIME_DATA_DIR."""
+    runtime_dir = cache.RUNTIME_DATA_DIR
+    os.makedirs(runtime_dir, exist_ok=True)
+
+    metadata_file = os.path.join(runtime_dir, 'metadata.json')
+    stats_file = os.path.join(runtime_dir, 'statistics.json')
+
     stats = {
         "feeds": 0,
         "domains": 0,
@@ -62,15 +65,18 @@ def run_update() -> bool:
     success_any = False
     
     for name, feed in FEEDS.items():
-        tmp_file = os.path.join(DATA_DIR, f"{feed['target']}.tmp")
-        target_file = os.path.join(DATA_DIR, feed['target'])
+        tmp_file = os.path.join(runtime_dir, f"{feed['target']}.tmp")
+        target_file = os.path.join(runtime_dir, feed['target'])
         
         if download_feed(feed['url'], tmp_file):
             items = parse_lines(tmp_file)
             if not items:
                 logger.warning(f"Feed {name} parsed empty, skipping replacement.")
                 if os.path.exists(tmp_file):
-                    os.remove(tmp_file)
+                    try:
+                        os.remove(tmp_file)
+                    except OSError:
+                        pass
                 continue
                 
             # Safely replace using atomic operation
@@ -90,6 +96,11 @@ def run_update() -> bool:
             success_any = True
         else:
             logger.error(f"Failed to update feed {name}. Old data preserved.")
+            if os.path.exists(tmp_file):
+                try:
+                    os.remove(tmp_file)
+                except OSError:
+                    pass
 
     if success_any:
         meta = {
@@ -98,12 +109,12 @@ def run_update() -> bool:
             "version": "1.0",
             "sources": list(FEEDS.keys())
         }
-        with open(METADATA_FILE, 'w') as f:
+        with open(metadata_file, 'w', encoding='utf-8') as f:
             json.dump(meta, f, indent=4)
             
         stats["last_update"] = meta["last_updated"]
         stats["version"] = "1.0"
-        with open(STATS_FILE, 'w') as f:
+        with open(stats_file, 'w', encoding='utf-8') as f:
             json.dump(stats, f, indent=4)
             
         return True

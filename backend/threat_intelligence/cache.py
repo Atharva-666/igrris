@@ -3,7 +3,11 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
+SEED_DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
+RUNTIME_DATA_DIR = os.environ.get(
+    'TI_RUNTIME_DIR',
+    os.path.join(os.path.dirname(__file__), 'runtime_data')
+)
 
 # Use global references for atomic replacement
 BLACKLIST_DOMAINS = set()
@@ -18,9 +22,20 @@ KEYWORDS = []
 USER_BLACKLIST = set()
 USER_WHITELIST = set()
 
+def get_data_file_path(filename: str) -> str:
+    """
+    Return path for a TI data file.
+    Prefers RUNTIME_DATA_DIR if file exists there and is non-empty (>0 bytes).
+    Otherwise falls back to SEED_DATA_DIR.
+    """
+    runtime_path = os.path.join(RUNTIME_DATA_DIR, filename)
+    if os.path.exists(runtime_path) and os.path.getsize(runtime_path) > 0:
+        return runtime_path
+    return os.path.join(SEED_DATA_DIR, filename)
+
 def _load_set(filename: str) -> set:
     s = set()
-    path = os.path.join(DATA_DIR, filename)
+    path = get_data_file_path(filename)
     if os.path.exists(path):
         try:
             with open(path, 'r', encoding='utf-8') as f:
@@ -29,11 +44,11 @@ def _load_set(filename: str) -> set:
                     if val and not val.startswith('#'):
                         s.add(val)
         except Exception as e:
-            logger.error(f"Error loading {filename}: {e}")
+            logger.error(f"Error loading {filename} from {path}: {e}")
     return s
 
 def _load_json_list(filename: str, key: str) -> list:
-    path = os.path.join(DATA_DIR, filename)
+    path = get_data_file_path(filename)
     if os.path.exists(path):
         import json
         try:
@@ -41,7 +56,7 @@ def _load_json_list(filename: str, key: str) -> list:
                 data = json.load(f)
                 return data.get(key, [])
         except Exception as e:
-            logger.error(f"Error loading {filename}: {e}")
+            logger.error(f"Error loading {filename} from {path}: {e}")
     return []
 
 def reload_cache():

@@ -57,3 +57,6 @@ credentials/
 # Agent / Tool cache
 .agents/
 .gemini/
+
+# Threat Intelligence Runtime Cache
+backend/threat_intelligence/runtime_data/

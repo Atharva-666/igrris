@@ -19,11 +19,12 @@ BLOCK_SEVERITY = _config.get("block_severity", ["critical", "high"])
 def _extract_domains(text: str) -> set:
     """Extract all domains and emails from text."""
     emails = re.findall(r'[\w\.-]+@([\w\.-]+)', text)
-    urls = re.findall(r'https?://(?:www\.)?([\w\.-]+)', text)
+    urls = re.findall(r'(?:https?|ftp)://(?:www\.)?([\w\.-]+)', text)
     return set(emails + urls)
 
 def _extract_urls(text: str) -> set:
-    return set(re.findall(r'https?://[^\s<>"]+|www\.[^\s<>"]+', text))
+    """Extract all HTTP, HTTPS, FTP, and WWW URLs from text."""
+    return set(re.findall(r'(?:https?|ftp)://[^\s<>"]+|www\.[^\s<>"]+', text))
 
 def check(
     subject: str,
