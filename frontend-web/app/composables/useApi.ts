@@ -50,7 +50,8 @@ export function useApi() {
 
   async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
     const url = `${base}${path}`
-    const res = await fetch(url, {
+       const res = await fetch(url, {
+      credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
       ...options,
     })
