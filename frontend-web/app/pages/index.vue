@@ -6,7 +6,8 @@
       <header class="relative z-50 w-full pt-3 sm:pt-6 pb-3">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between w-full">
           <!-- Brand -->
-          <div class="flex items-center gap-2.5 sm:gap-3 group cursor-pointer shrink-0" aria-label="Igrris AI Home" @click="router.push('/')">
+          <div class="flex items-center gap-2.5 sm:gap-3 group cursor-pointer shrink-0" aria-label="Igrris AI Home"
+            @click="router.push('/')">
             <div
               class="relative w-10 h-10 sm:w-12 sm:h-12 md:w-[5.5rem] md:h-[5.5rem] flex items-center justify-center group-hover:scale-105 transition-transform shrink-0">
               <img src="/main-logo.png" alt="Igrris Logo" width="88" height="88" decoding="async"
@@ -26,7 +27,8 @@
                 <!-- Profile Logo -->
                 <div v-if="userPicture"
                   class="w-6 h-6 sm:w-8 sm:h-8 rounded-full overflow-hidden border border-surface-700 shadow-md shrink-0">
-                  <img :src="userPicture" alt="User Profile" width="32" height="32" decoding="async" class="w-full h-full object-cover" />
+                  <img :src="userPicture" alt="User Profile" width="32" height="32" decoding="async"
+                    class="w-full h-full object-cover" />
                 </div>
                 <div v-else
                   class="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gradient-to-tr from-brand-500 to-purple-500 flex items-center justify-center text-white shadow-md border border-surface-700 shrink-0">
@@ -131,7 +133,8 @@
               </div>
 
               <div class="relative group">
-                <textarea id="try-it-text-input" aria-label="Message content to analyze" v-model="tryItText" rows="4" placeholder="Paste message content here..."
+                <textarea id="try-it-text-input" aria-label="Message content to analyze" v-model="tryItText" rows="4"
+                  placeholder="Paste message content here..."
                   class="w-full bg-surface-950/50 border border-surface-700 rounded-2xl p-4 text-white placeholder:text-surface-500 focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 transition-all resize-none"
                   :disabled="tryItLoading"></textarea>
 
@@ -242,7 +245,9 @@
                   <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
               </div>
-              <h3 class="text-base sm:text-xl font-semibold text-white mb-2 sm:mb-3 group-hover:text-brand-300 transition-colors">Live
+              <h3
+                class="text-base sm:text-xl font-semibold text-white mb-2 sm:mb-3 group-hover:text-brand-300 transition-colors">
+                Live
                 Processing
               </h3>
               <p class="text-surface-400 leading-relaxed text-sm">
@@ -256,9 +261,12 @@
 
         <!-- Pipeline Information Section -->
         <section class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24 sm:pb-32">
-          <div v-motion :initial="fadeUp(0).initial" :visible-once="fadeUp(0).enter" class="text-center mb-10 md:mb-24 px-2">
+          <div v-motion :initial="fadeUp(0).initial" :visible-once="fadeUp(0).enter"
+            class="text-center mb-10 md:mb-24 px-2">
             <h2 class="text-2xl sm:text-4xl font-bold text-white mb-3">How it works</h2>
-            <p class="text-surface-400 text-xs sm:text-base max-w-2xl mx-auto leading-relaxed">Igrris AI uses a sophisticated ML pipeline to analyze,
+            <p class="text-surface-400 text-xs sm:text-base max-w-2xl mx-auto leading-relaxed">Igrris AI uses a
+              sophisticated
+              ML pipeline to analyze,
               categorize,
               and secure your inbox in real-time.</p>
           </div>
@@ -293,10 +301,12 @@
               </div>
               <div class="w-full md:w-5/12 pl-12 sm:pl-16 md:pl-12">
                 <div class="block md:hidden mb-4">
-                  <h3 class="text-lg sm:text-xl font-bold text-white group-hover:text-brand-400 transition-colors">1. Secure
+                  <h3 class="text-lg sm:text-xl font-bold text-white group-hover:text-brand-400 transition-colors">1.
+                    Secure
                     Extraction
                   </h3>
-                  <p class="text-surface-400 text-xs sm:text-sm leading-relaxed mt-1.5">Connects to the Gmail API using read-only
+                  <p class="text-surface-400 text-xs sm:text-sm leading-relaxed mt-1.5">Connects to the Gmail API using
+                    read-only
                     scopes.
                     We fetch email headers and decode the body while ensuring strict privacy.</p>
                 </div>
@@ -311,10 +321,11 @@
                     <div class="w-2.5 h-2.5 rounded-full bg-emerald-500/80"></div>
                     <span class="ml-2 text-[10px] font-mono text-surface-500">api_request.http</span>
                   </div>
-                  <pre class="font-mono text-[11px] sm:text-xs text-surface-300 overflow-x-auto whitespace-pre-wrap break-all leading-relaxed"><code><span
-                  class="text-cyan-400">GET</span> /gmail/v1/users/me/messages
-<span class="text-surface-500">Headers:</span> Authorization: Bearer...
-<span class="text-emerald-400">Response:</span> { "id": "189a...", "snippet": "..." }</code></pre>
+                  <pre
+                    class="font-mono text-[11px] sm:text-xs text-surface-300 overflow-x-auto whitespace-pre-wrap break-all leading-relaxed">
+              <code><span class="text-cyan-400">GET</span> /gmail/v1/users/me/messages
+                <span class="text-surface-500">Headers:</span> Authorization: Bearer...
+                <span class="text-emerald-400">Response:</span> { "id": "189a...", "snippet": "..." }</code></pre>
                 </div>
               </div>
             </div>
@@ -333,7 +344,8 @@
               </div>
               <div
                 class="absolute left-5 md:left-1/2 w-10 h-10 sm:w-12 sm:h-12 bg-surface-950 border border-purple-500/50 rounded-full flex items-center justify-center -translate-x-1/2 z-10 shadow-[0_0_20px_rgba(168,85,247,0.3)] group-hover:border-purple-400 group-hover:shadow-[0_0_30px_rgba(168,85,247,0.6)] group-hover:scale-110 transition-all duration-500">
-                <svg class="w-4 h-4 sm:w-5 sm:h-5 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg class="w-4 h-4 sm:w-5 sm:h-5 text-purple-400" fill="none" viewBox="0 0 24 24"
+                  stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                     d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
                 </svg>
@@ -343,7 +355,9 @@
                   <h3 class="text-lg sm:text-xl font-bold text-white group-hover:text-purple-400 transition-colors">2.
                     Preprocessing &
                     NLP</h3>
-                  <p class="text-surface-400 text-xs sm:text-sm leading-relaxed mt-1.5">Raw text is cleaned, tokenized, and converted
+                  <p class="text-surface-400 text-xs sm:text-sm leading-relaxed mt-1.5">Raw text is cleaned, tokenized,
+                    and
+                    converted
                     to
                     lowercase. URLs, emails, and numbers are replaced with special tokens.</p>
                 </div>
@@ -358,10 +372,12 @@
                     <div class="w-2.5 h-2.5 rounded-full bg-emerald-500/80"></div>
                     <span class="ml-2 text-[10px] font-mono text-surface-500">preprocess.py</span>
                   </div>
-                  <pre class="font-mono text-[11px] sm:text-xs text-surface-300 overflow-x-auto whitespace-pre-wrap break-all leading-relaxed"><code><span
-                  class="text-purple-400">text</span> = <span class="text-blue-400">clean_text</span>(email.body)
-<span class="text-purple-400">vector</span> = tfidf.<span class="text-blue-400">transform</span>([text])
-<span class="text-surface-500"># Shape: (1, 15000) sparse matrix</span></code></pre>
+                  <pre
+                    class="font-mono text-[11px] sm:text-xs text-surface-300 overflow-x-auto whitespace-pre-wrap break-all leading-relaxed">
+              <code><span class="text-purple-400">text</span> = <span
+                  class="text-blue-400">clean_text</span>(email.body)
+                <span class="text-purple-400">vector</span> = tfidf.<span class="text-blue-400">transform</span>([text])
+                <span class="text-surface-500"># Shape: (1, 15000) sparse matrix</span></code></pre>
                 </div>
               </div>
             </div>
@@ -386,9 +402,12 @@
               </div>
               <div class="w-full md:w-5/12 pl-12 sm:pl-16 md:pl-12">
                 <div class="block md:hidden mb-4">
-                  <h3 class="text-lg sm:text-xl font-bold text-white group-hover:text-blue-400 transition-colors">3. LinearSVC
+                  <h3 class="text-lg sm:text-xl font-bold text-white group-hover:text-blue-400 transition-colors">3.
+                    LinearSVC
                     Classification</h3>
-                  <p class="text-surface-400 text-xs sm:text-sm leading-relaxed mt-1.5">The sparse matrix is passed to our Linear
+                  <p class="text-surface-400 text-xs sm:text-sm leading-relaxed mt-1.5">The sparse matrix is passed to
+                    our
+                    Linear
                     Support
                     Vector Classifier, calculating decision scores across 11 distinct categories.</p>
                 </div>
@@ -403,12 +422,13 @@
                     <div class="w-2.5 h-2.5 rounded-full bg-emerald-500/80"></div>
                     <span class="ml-2 text-[10px] font-mono text-surface-500">classifier.py</span>
                   </div>
-                  <pre class="font-mono text-[11px] sm:text-xs text-surface-300 overflow-x-auto whitespace-pre-wrap break-all leading-relaxed"><code><span
-                  class="text-purple-400">scores</span> = model.<span
+                  <pre
+                    class="font-mono text-[11px] sm:text-xs text-surface-300 overflow-x-auto whitespace-pre-wrap break-all leading-relaxed">
+              <code><span class="text-purple-400">scores</span> = model.<span
                   class="text-blue-400">decision_function</span>(vector)
-<span class="text-purple-400">prediction</span> = classes[np.<span
+                <span class="text-purple-400">prediction</span> = classes[np.<span
                   class="text-blue-400">argmax</span>(scores)]
-<span class="text-purple-400">confidence</span> = <span
+                <span class="text-purple-400">confidence</span> = <span
                   class="text-emerald-400">softmax</span>(scores)</code></pre>
                 </div>
               </div>
@@ -428,16 +448,20 @@
               </div>
               <div
                 class="absolute left-5 md:left-1/2 w-10 h-10 sm:w-12 sm:h-12 bg-surface-950 border border-emerald-500/50 rounded-full flex items-center justify-center -translate-x-1/2 z-10 shadow-[0_0_20px_rgba(16,185,129,0.3)] group-hover:border-emerald-400 group-hover:shadow-[0_0_30px_rgba(16,185,129,0.6)] group-hover:scale-110 transition-all duration-500">
-                <svg class="w-4 h-4 sm:w-5 sm:h-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg class="w-4 h-4 sm:w-5 sm:h-5 text-emerald-400" fill="none" viewBox="0 0 24 24"
+                  stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                 </svg>
               </div>
               <div class="w-full md:w-5/12 pl-12 sm:pl-16 md:pr-12 md:pl-0">
                 <div class="block md:hidden mb-4">
-                  <h3 class="text-lg sm:text-xl font-bold text-white group-hover:text-emerald-400 transition-colors">4. Smart
+                  <h3 class="text-lg sm:text-xl font-bold text-white group-hover:text-emerald-400 transition-colors">4.
+                    Smart
                     Action &
                     Labeling</h3>
-                  <p class="text-surface-400 text-xs sm:text-sm leading-relaxed mt-1.5">The predicted label is mapped to a Gmail
+                  <p class="text-surface-400 text-xs sm:text-sm leading-relaxed mt-1.5">The predicted label is mapped to
+                    a
+                    Gmail
                     Label ID
                     and applied to the email, organizing your inbox instantly.</p>
                 </div>
@@ -452,12 +476,13 @@
                     <div class="w-2.5 h-2.5 rounded-full bg-emerald-500/80"></div>
                     <span class="ml-2 text-[10px] font-mono text-surface-500">modify_labels.json</span>
                   </div>
-                  <pre class="font-mono text-[11px] sm:text-xs text-surface-300 overflow-x-auto whitespace-pre-wrap break-all leading-relaxed"><code><span
-                  class="text-cyan-400">POST</span> /gmail/v1/users/me/messages/{id}/modify
-{
-<span class="text-purple-400">"addLabelIds"</span>: [<span class="text-emerald-400">"Label_4"</span>],
-<span class="text-purple-400">"removeLabelIds"</span>: [<span class="text-amber-400">"INBOX"</span>]
-}</code></pre>
+                  <pre
+                    class="font-mono text-[11px] sm:text-xs text-surface-300 overflow-x-auto whitespace-pre-wrap break-all leading-relaxed">
+              <code><span class="text-cyan-400">POST</span> /gmail/v1/users/me/messages/{id}/modify
+                {
+                <span class="text-purple-400">"addLabelIds"</span>: [<span class="text-emerald-400">"Label_4"</span>],
+                <span class="text-purple-400">"removeLabelIds"</span>: [<span class="text-amber-400">"INBOX"</span>]
+                }</code></pre>
                 </div>
               </div>
             </div>
@@ -468,7 +493,8 @@
 
         <!-- Footer -->
 
-        <footer class="relative z-10 border-t border-surface-800 pt-8 pb-36 sm:pb-16 text-center text-surface-500 text-sm">
+        <footer
+          class="relative z-10 border-t border-surface-800 pt-8 pb-36 sm:pb-16 text-center text-surface-500 text-sm">
           <p class="mb-1 text-surface-500">Powered by</p>
           <p class="font-medium text-surface-300">Vue 3, FastAPI, and LinearSVC</p>
         </footer>
@@ -549,16 +575,20 @@
 
           <!-- Scanning Live Terminal State -->
           <div v-if="scanning" class="mb-8 relative z-10 animate-fade-in">
-            <div class="card border-surface-700 shadow-2xl p-4 sm:p-6 md:!p-8 flex flex-col gap-4 sm:gap-6 w-full max-w-3xl mx-auto">
+            <div
+              class="card border-surface-700 shadow-2xl p-4 sm:p-6 md:!p-8 flex flex-col gap-4 sm:gap-6 w-full max-w-3xl mx-auto">
               <!-- Header -->
               <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div class="flex items-center gap-3 sm:gap-4">
                   <div class="relative shrink-0">
-                    <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-full border-2 border-surface-800 border-t-brand-500 animate-spin" />
+                    <div
+                      class="w-8 h-8 sm:w-10 sm:h-10 rounded-full border-2 border-surface-800 border-t-brand-500 animate-spin" />
                   </div>
                   <div>
                     <p class="text-sm sm:text-base font-medium text-surface-100">Scanning your inbox…</p>
-                    <p class="text-muted text-xs sm:text-sm mt-0.5">Fetching emails, running ML model, and applying labels.</p>
+                    <p class="text-muted text-xs sm:text-sm mt-0.5">Fetching emails, running ML model, and applying
+                      labels.
+                    </p>
                   </div>
                 </div>
 
@@ -630,11 +660,14 @@
               </div>
               <div>
                 <p class="text-base sm:text-lg font-medium text-surface-100">No emails scanned yet</p>
-                <p class="text-muted text-xs sm:text-sm mt-1">Click <strong class="text-surface-300">Scan Gmail</strong> to analyse your
+                <p class="text-muted text-xs sm:text-sm mt-1">Click <strong class="text-surface-300">Scan Gmail</strong>
+                  to
+                  analyse your
                   inbox with the ML model.</p>
               </div>
               <div class="flex flex-col sm:flex-row items-center justify-center gap-3 w-full sm:w-auto">
-                <button id="btn-scan-empty" class="btn-primary w-full sm:w-auto justify-center" @click="startScan">Scan Gmail</button>
+                <button id="btn-scan-empty" class="btn-primary w-full sm:w-auto justify-center" @click="startScan">Scan
+                  Gmail</button>
                 <button id="btn-delete-labels-empty"
                   class="w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs sm:text-sm font-medium border transition-all flex items-center justify-center gap-2 bg-red-950/40 hover:bg-red-900/60 border-red-800/60 text-red-300 hover:text-white shadow-lg hover:shadow-red-900/30"
                   @click="showDeleteModal = true">
@@ -669,7 +702,8 @@
               </div>
 
               <!-- Filter select -->
-              <select id="select-filter" v-model="activeFilter" class="input w-full sm:w-44 text-xs sm:text-sm py-2 sm:py-2.5">
+              <select id="select-filter" v-model="activeFilter"
+                class="input w-full sm:w-44 text-xs sm:text-sm py-2 sm:py-2.5">
                 <option value="">All labels</option>
                 <option v-for="l in LABEL_ORDER" :key="l" :value="l">{{ l }}</option>
               </select>
@@ -680,8 +714,8 @@
                 <button id="btn-scan-results"
                   class="px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-medium border transition-all flex items-center justify-center gap-1.5 sm:gap-2 bg-brand-600/30 hover:bg-brand-600/50 border-brand-500/60 text-white shadow-lg hover:shadow-brand-600/20 shrink-0 w-full sm:w-auto"
                   @click="startScan">
-                  <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-brand-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                    stroke-width="2">
+                  <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-brand-400" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round"
                       d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                   </svg>
@@ -713,8 +747,12 @@
                 <table class="w-full text-xs sm:text-sm">
                   <thead>
                     <tr class="border-b border-surface-800 text-left bg-surface-900/80">
-                      <th class="px-3 sm:px-4 py-3 text-[11px] sm:text-xs font-medium text-surface-500 uppercase tracking-wider w-36 sm:w-64">Sender</th>
-                      <th class="px-3 sm:px-4 py-3 text-[11px] sm:text-xs font-medium text-surface-500 uppercase tracking-wider">Subject</th>
+                      <th
+                        class="px-3 sm:px-4 py-3 text-[11px] sm:text-xs font-medium text-surface-500 uppercase tracking-wider w-36 sm:w-64">
+                        Sender</th>
+                      <th
+                        class="px-3 sm:px-4 py-3 text-[11px] sm:text-xs font-medium text-surface-500 uppercase tracking-wider">
+                        Subject</th>
                       <th
                         class="px-3 sm:px-4 py-3 text-[11px] sm:text-xs font-medium text-surface-500 uppercase tracking-wider w-36 sm:w-48 hidden sm:table-cell">
                         Label</th>
@@ -732,14 +770,17 @@
                       </td>
                       <td class="px-3 sm:px-4 py-3 text-surface-400 truncate max-w-0">
                         <div class="flex items-center gap-2">
-                          <span class="truncate text-xs sm:text-sm text-surface-300">{{ email.subject || '(no subject)' }}</span>
-                          <LabelBadge :label="email.primary_label" class="sm:hidden shrink-0 text-[10px] py-0.5 px-1.5" />
+                          <span class="truncate text-xs sm:text-sm text-surface-300">{{ email.subject || '(no subject)'
+                            }}</span>
+                          <LabelBadge :label="email.primary_label"
+                            class="sm:hidden shrink-0 text-[10px] py-0.5 px-1.5" />
                         </div>
                       </td>
                       <td class="px-3 sm:px-4 py-3 whitespace-nowrap hidden sm:table-cell">
                         <LabelBadge :label="email.primary_label" />
                       </td>
-                      <td class="px-3 sm:px-4 py-3 text-right text-surface-500 hidden md:table-cell tabular-nums text-xs sm:text-sm">
+                      <td
+                        class="px-3 sm:px-4 py-3 text-right text-surface-500 hidden md:table-cell tabular-nums text-xs sm:text-sm">
                         {{ email.confidence > 0 ? `${Math.round(email.confidence * 100)}%` : '—' }}
                       </td>
                     </tr>
@@ -753,7 +794,8 @@
               <!-- Pagination -->
               <div v-if="totalPages > 1"
                 class="flex items-center justify-between px-3 sm:px-4 py-3 border-t border-surface-800">
-                <button id="btn-prev-page" class="btn-ghost text-xs py-1 px-2.5" :disabled="page === 1" @click="page--">←
+                <button id="btn-prev-page" class="btn-ghost text-xs py-1 px-2.5" :disabled="page === 1"
+                  @click="page--">←
                   Previous</button>
                 <p class="text-muted text-xs">Page {{ page }} of {{ totalPages }}</p>
                 <button id="btn-next-page" class="btn-ghost text-xs py-1 px-2.5" :disabled="page === totalPages"
@@ -767,10 +809,7 @@
         <EmailDetails :email="selectedEmail" @close="selectedEmail = null" />
 
         <!-- Delete Labels Confirmation Modal -->
-        <div v-if="showDeleteModal"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="delete-modal-title"
+        <div v-if="showDeleteModal" role="dialog" aria-modal="true" aria-labelledby="delete-modal-title"
           class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-fade-in">
           <div
             class="bg-surface-900 border border-surface-700/80 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl relative overflow-hidden">
@@ -808,22 +847,19 @@
             </div>
 
             <div class="flex flex-col gap-2.5 sm:flex-row sm:justify-end">
-              <button
-                type="button"
+              <button type="button"
                 class="px-4 py-2.5 rounded-xl text-sm font-medium text-surface-300 hover:text-white bg-surface-800 hover:bg-surface-700 border border-surface-700/60 transition-colors"
                 @click="showDeleteModal = false" :disabled="deletingLabels">
                 Cancel
               </button>
 
-              <button v-if="activeFilter"
-                type="button"
+              <button v-if="activeFilter" type="button"
                 class="px-4 py-2.5 rounded-xl text-sm font-medium bg-amber-950/80 hover:bg-amber-900/90 text-amber-200 border border-amber-800/80 transition-colors flex items-center justify-center gap-2"
                 @click="handleDeleteLabels(activeFilter)" :disabled="deletingLabels">
                 <span>Delete '{{ activeFilter }}'</span>
               </button>
 
-              <button
-                type="button"
+              <button type="button"
                 class="px-4 py-2.5 rounded-xl text-sm font-medium bg-red-600 hover:bg-red-500 text-white border border-red-500 shadow-lg shadow-red-900/40 transition-colors flex items-center justify-center gap-2"
                 @click="handleDeleteLabels()" :disabled="deletingLabels">
                 <svg v-if="deletingLabels" class="w-4 h-4 animate-spin text-white" fill="none" viewBox="0 0 24 24">
@@ -1122,11 +1158,12 @@ onMounted(async () => {
   await checkAuth()
 
   const code = route.query.code as string | undefined
-  if (code) {
+  const state = route.query.state as string | undefined
+  if (code && state) {
     loading.value = true
     error.value = null
     try {
-      await api.submitCallback(code)
+      await api.submitCallback(code, state)
       await router.replace('/')
       await checkAuth()
     } catch (err: unknown) {

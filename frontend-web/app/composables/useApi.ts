@@ -72,10 +72,10 @@ export function useApi() {
   }
 
   /** Exchange an OAuth code for credentials */
-  function submitCallback(code: string) {
+  function submitCallback(code: string , state:string) {
     return apiFetch<AuthStatus>('/auth/callback', {
       method: 'POST',
-      body: JSON.stringify({ code }),
+      body: JSON.stringify({ code , state}),
     })
   }
 
