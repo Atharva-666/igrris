@@ -1051,7 +1051,7 @@ function updateSummary() {
 let batchTimer: any = null
 const resultBatchQueue: ScanResult[] = []
 
-function startScan() {
+async function startScan() {
   // Reset state
   scanning.value = true
   stopping.value = false
@@ -1063,8 +1063,16 @@ function startScan() {
   scanProgress.value = { current: 0, total: 0 }
 
   currentScanId.value = crypto.randomUUID()
-  const es = api.createScanStream(currentScanId.value)
-  eventSource.value = es
+  
+  try {
+    const { scan_token } = await api.getScanToken()
+    const es = api.createScanStream(currentScanId.value, scan_token)
+    eventSource.value = es
+  } catch (err: any) {
+    scanError.value = "Failed to start scan: " + (err.message || 'Authentication error')
+    scanning.value = false
+    return
+  }
 
   // Batch processing function to prevent mass animations
   const flushBatch = () => {
@@ -1108,8 +1116,15 @@ function startScan() {
   })
 
   es.addEventListener('error', (e) => {
-    const data = JSON.parse((e as MessageEvent).data)
-    scanError.value = data.message || 'Unknown stream error.'
+    let msg = 'Unknown stream error.'
+    const dataStr = (e as MessageEvent).data
+    if (dataStr) {
+      try {
+        const data = JSON.parse(dataStr)
+        msg = data.message || msg
+      } catch (err) {}
+    }
+    scanError.value = msg
     flushBatch()
     clearInterval(batchTimer)
     closeStream()

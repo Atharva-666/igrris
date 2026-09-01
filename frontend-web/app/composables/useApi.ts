@@ -85,9 +85,14 @@ export function useApi() {
     return apiFetch<AuthStatus>('/auth/logout', { method: 'POST' })
   }
 
+  /** Get a short-lived scan token for EventSource authentication */
+  function getScanToken() {
+    return apiFetch<{ scan_token: string }>('/scan/token', { method: 'POST' })
+  }
+
   /** Create a streaming connection to the scan endpoint */
-  function createScanStream(scanId: string): EventSource {
-    const url = `${base}/scan/stream?scan_id=${scanId}`
+  function createScanStream(scanId: string, scanToken: string): EventSource {
+    const url = `${base}/scan/stream?scan_id=${scanId}&scan_token=${scanToken}`
     // Return the native EventSource object so the component can attach listeners
     return new EventSource(url)
   }
@@ -123,6 +128,7 @@ export function useApi() {
     getAuthUrl,
     submitCallback,
     logout,
+    getScanToken,
     createScanStream,
     stopScan,
     predictMessage,
