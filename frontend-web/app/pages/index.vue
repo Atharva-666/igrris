@@ -1064,9 +1064,10 @@ async function startScan() {
 
   currentScanId.value = crypto.randomUUID()
   
+  let es: EventSource
   try {
     const { scan_token } = await api.getScanToken()
-    const es = api.createScanStream(currentScanId.value, scan_token)
+    es = api.createScanStream(currentScanId.value, scan_token)
     eventSource.value = es
   } catch (err: any) {
     scanError.value = "Failed to start scan: " + (err.message || 'Authentication error')
