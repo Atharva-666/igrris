@@ -297,6 +297,10 @@ Add `https://your-app.vercel.app/login` to:
 - **Problem**: When user completed Google OAuth, if the in-memory session was cleared (due to server restart or cross-origin redirect drop), `exchange_code` threw `"No OAuth state found in session. Possible CSRF attack or expired session."`
 - **Fix**: Updated `Flow.from_client_config` with `autogenerate_code_verifier=False` (using standard confidential client authorization with `client_secret`) and enabled `exchange_code` to accept `body.state` from the Google redirect. If session state exists, it validates against CSRF mismatch; if lost due to container restart, it gracefully completes the token exchange using the verified authorization code and client secret.
 
+### 19. Vercel Analytics Integration
+- Installed `@vercel/analytics` package for frontend page view & real-time visitor tracking.
+- Created client plugin `frontend-web/app/plugins/vercel-analytics.client.ts` to automatically initialize analytics in production. Verified with full `npm run build`.
+
 ---
 
 ## Production Deployment Context (Vercel + Railway)
