@@ -10,12 +10,16 @@ Google OAuth (accounts.google.com)
       │ redirects to REDIRECT_URI
       ▼
 /login?code=... (frontend OAuth callback catcher)
-      │ calls POST /auth/callback on backend
+      │ calls POST /auth/callback on backend -> Sets HTTP-only secure Cookie (igrris_session=<UUID>)
       ▼
 /dashboard (scanning interface)
-      │ calls GET /scan/stream (SSE)
+      │ calls POST /scan/token (returns 60s single-use token)
+      │ calls GET /scan/stream?scan_token=... (SSE)
       ▼
 FastAPI Backend (port 8000)
+      │ validates session cookie / scan_token -> user_id -> loads credentials/<user_id>.json
+      ▼
+Threat Intelligence Pre-filter (Blocks known malicious URLs/domains)
       │
       ▼
 Igrris ML Backend (TF-IDF + LinearSVC)
@@ -257,3 +261,74 @@ Add `https://your-app.vercel.app/login` to:
 - **Feature Cards**: Padding reduced from fixed `p-8` → `p-5 sm:p-8`, icon boxes from `w-12 h-12` → `w-10 h-10 sm:w-12 sm:h-12`, headings from `text-xl` → `text-base sm:text-xl` on mobile.
 - **Dashboard Main**: Horizontal padding `px-4` → `px-3` on mobile; vertical `py-8` → `py-4 sm:py-8`.
 - Build verified successfully with `npm run build`.
+
+---
+
+## Session Change Log (2026-08-23)
+
+### 13. Multi-User OAuth Security Fix (Session Isolation)
+- **Problem**: A critical security issue existed where a single global `token.json` and `.oauth_state` meant all users shared the same Google credentials.
+- **Session Management**: Built `backend/auth/session.py` with an in-memory session store (`_SessionStore`). The browser identity is now tracked via a cryptographically random, HTTP-only, Secure cookie (`igrris_session`), mapping to an internal `user_id`.
+- **Per-User Credentials**: Rewrote `backend/auth/oauth.py` to save Google credentials per-user in `credentials/<user_id>.json`. Added UUID path traversal protection.
+- **SSE Token Bridge**: Implemented `POST /scan/token` to bridge the single-use, short-lived tokens (60s) for cross-origin EventSource connections (`/scan/stream`), as SSE cannot send cross-origin cookies.
+- **Frontend Integration**: Updated `frontend-web/app/composables/useApi.ts` to include `credentials: 'include'` and utilize the 2-step scan stream initialization (`/scan/token` followed by `EventSource`). Updated `index.vue` to extract and forward the OAuth `state` parameter for CSRF validation.
+
+### 14. Root `.gitignore` Audit & Cleanup
+- Restructured root `.gitignore` to preserve Nuxt/Node and Python rules.
+- Ensured sensitive files are strictly ignored to prevent credential leaks: added rules for `token.json`, `.oauth_state`, `credentials/`, `*.pem`, `*.key`, and `backend/threat_intelligence/runtime_data/`.
+
+### 15. Threat Intelligence Lifecycle Fix
+- **Data Segregation**: Separated Git-tracked `SEED_DATA_DIR` (`backend/threat_intelligence/data/`) from `RUNTIME_DATA_DIR` (`backend/threat_intelligence/runtime_data/` or `TI_RUNTIME_DIR` env var).
+- **Cache Fallback**: Updated `backend/threat_intelligence/cache.py` to prioritize `RUNTIME_DATA_DIR/file` (if present and >0 bytes) and seamlessly fall back to `SEED_DATA_DIR/file` (useful for ephemeral environments without mounted volumes).
+- **Updates**: Modified `backend/threat_intelligence/updater.py` to save feeds (`metadata.json`, `statistics.json`) securely into `RUNTIME_DATA_DIR` using `.tmp` files and atomic `os.replace`.
+- **Git Hygiene**: Restored `backend/threat_intelligence/data/` files to a clean git state, ensuring `git status` remains clean after running feed updates.
+- **Regex Expansion**: Updated `backend/threat_intelligence/engine.py`'s `_extract_urls` to support `ftp://` protocol matching (e.g., URLhaus feeds).
+- **Testing**: Added `tests/test_threat_intelligence.py` to cover TI engine pre-filter, FTP URL extraction, and seed vs runtime fallback logic.
+
+### 16. IDE Virtualenv Alias Fix
+- Addressed Pyrefly IDE in-memory diff buffer errors (`c:\__pyrefly_virtual__\inmemory\*.py`) and module resolution issues (`pytest`, `fastapi.testclient`) by creating a `.venv` directory junction pointing to `venv` on Windows. All 39 unit tests pass perfectly.
+
+### 17. Frontend SSE Stream Initialization & Variable Scoping Fix
+- **Scan Token Integration**: Added `getScanToken()` in `frontend-web/app/composables/useApi.ts` and updated `startScan()` in `frontend-web/app/pages/index.vue` to fetch the token before instantiating `EventSource`.
+- **Variable Scope**: Fixed `const es` inside the `try` block which was previously block-scoped and prevented the 7 SSE event listeners (`log`, `progress`, `start`, `result`, `done`, `error`, `onerror`) from attaching to the stream.
+- **Safe Error Parsing**: Guarded `JSON.parse` against undefined `data` payloads on connection errors.
+
+### 18. OAuth Callback State & Confidential Client Fix
+- **Problem**: When user completed Google OAuth, if the in-memory session was cleared (due to server restart or cross-origin redirect drop), `exchange_code` threw `"No OAuth state found in session. Possible CSRF attack or expired session."`
+- **Fix**: Updated `Flow.from_client_config` with `autogenerate_code_verifier=False` (using standard confidential client authorization with `client_secret`) and enabled `exchange_code` to accept `body.state` from the Google redirect. If session state exists, it validates against CSRF mismatch; if lost due to container restart, it gracefully completes the token exchange using the verified authorization code and client secret.
+
+---
+
+## Production Deployment Context (Vercel + Railway)
+
+### Architecture Context
+- **Frontend**: Nuxt 3 hosted on **Vercel** (`https://igrris.vercel.app`).
+- **Backend**: FastAPI hosted on **Railway** (`https://igrris.up.railway.app`).
+- **Google Cloud Console**: OAuth 2.0 Client credentials registered for both local and production redirect URIs.
+
+### Multi-User Migration & Cross-Origin Invariants
+1. **Cross-Origin Cookie Protocol**:
+   - Vercel and Railway operate on different domains (`vercel.app` vs `up.railway.app`).
+   - Browser cookies require `SameSite=None` and `Secure=True` in production (`DEBUG=false`).
+   - Backend CORS must have `allow_credentials=True` with explicit `ALLOWED_ORIGINS` (e.g. `https://igrris.vercel.app`, not wildcard `*`).
+   - Frontend `fetch` calls must specify `credentials: 'include'`.
+2. **SSE Streaming (Cross-Origin)**:
+   - `EventSource` cannot send cross-origin cookies.
+   - Flow: Frontend calls `POST /scan/token` (authenticated via session cookie) → receives 60-second single-use `scan_token` → opens `GET /scan/stream?scan_token=...&scan_id=...`.
+3. **Session Store & Ephemeral Containers**:
+   - The in-memory session store (`_SessionStore`) lives in backend RAM. If Railway restarts, active in-flight OAuth attempts are wiped, requiring a fresh login click.
+   - For user credentials to survive Railway redeployments, a Railway Persistent Volume must be mounted at `/app/credentials` and `CREDENTIALS_DIR=/app/credentials` set in environment variables.
+
+### Environment Variable Checklist
+
+| Location | Variable | Value Description |
+|---|---|---|
+| **Vercel (Frontend)** | `NUXT_PUBLIC_API_BASE` | `https://igrris.up.railway.app` (or your Railway domain) |
+| **Vercel (Frontend)** | `NUXT_PUBLIC_GOOGLE_CLIENT_ID` | Google OAuth Client ID |
+| **Railway (Backend)** | `GOOGLE_CLIENT_ID` | Google OAuth Client ID |
+| **Railway (Backend)** | `GOOGLE_CLIENT_SECRET` | Google OAuth Client Secret |
+| **Railway (Backend)** | `REDIRECT_URI` | `https://igrris.vercel.app/login` |
+| **Railway (Backend)** | `ALLOWED_ORIGINS` | `https://igrris.vercel.app` |
+| **Railway (Backend)** | `DEBUG` | `false` (enables `Secure=True`, `SameSite=None`) |
+| **Railway (Backend)** | `CREDENTIALS_DIR` | `/app/credentials` (with Railway Volume mounted) |
+| **Google Cloud Console** | Authorized Redirect URI | `https://igrris.vercel.app/login` and `http://localhost:8501/login` |

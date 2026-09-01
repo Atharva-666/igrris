@@ -104,7 +104,11 @@ def get_auth_url(session_id: str) -> str:
             "GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET must be set in your .env file."
         )
 
-    flow = Flow.from_client_config(_client_config(), scopes=SCOPES)
+    flow = Flow.from_client_config(
+        _client_config(),
+        scopes=SCOPES,
+        autogenerate_code_verifier=False,
+    )
     flow.redirect_uri = REDIRECT_URI
 
     url, state = flow.authorization_url(
@@ -113,56 +117,51 @@ def get_auth_url(session_id: str) -> str:
         prompt="consent",
     )
 
-    code_verifier = getattr(flow, "code_verifier", None)
-
-    # Store state in this browser's session only — no global file
-    session_store.set_data(session_id, "oauth_state", state)
-    session_store.set_data(session_id, "code_verifier", code_verifier)
+    # Store state in this browser's session if available
+    if session_id:
+        try:
+            session_store.set_data(session_id, "oauth_state", state)
+        except Exception as e:
+            logger.warning("Could not save oauth_state in session %s: %s", session_id, e)
 
     logger.info("Authorization URL generated for session %s.", session_id)
     return url
 
 
-def exchange_code(code: str, session_id: str) -> Credentials:
+def exchange_code(code: str, session_id: str | None = None, state: str | None = None) -> Credentials:
     """
     Exchange the authorization code for credentials.
 
-    Reads (and validates) the OAuth state from the server-side session,
-    so only the browser that initiated the OAuth flow can complete it.
+    Validates the OAuth state if present in the session or callback,
+    and fetches tokens from Google using confidential client auth.
 
     Parameters
     ----------
     code : str
         The 'code' query parameter from the OAuth callback URL.
-    session_id : str
+    session_id : str | None
         The caller's session ID (used to retrieve and validate OAuth state).
+    state : str | None
+        The 'state' query parameter passed back by Google in the callback.
     """
-    session_data = session_store.get(session_id)
-    if session_data is None:
-        raise ValueError("No active session found. OAuth flow may have expired.")
-
-    state = session_data.get("oauth_state")
-    code_verifier = session_data.get("code_verifier")
-
-    if not state:
-        raise ValueError("No OAuth state found in session. Possible CSRF attack or expired session.")
+    if session_id:
+        session_data = session_store.get(session_id)
+        if session_data:
+            stored_state = session_data.get("oauth_state")
+            if stored_state and state and stored_state != state:
+                raise ValueError("OAuth state mismatch. Possible CSRF attack.")
+            # Clear state from session immediately after use (single-use)
+            session_store.set_data(session_id, "oauth_state", None)
 
     flow = Flow.from_client_config(
         _client_config(),
         scopes=SCOPES,
-        state=state,  # Enforce CSRF validation
+        autogenerate_code_verifier=False,
     )
     flow.redirect_uri = REDIRECT_URI
 
-    if code_verifier:
-        flow.code_verifier = code_verifier
-
-    # Exchange code for tokens — this validates the state parameter
+    # Exchange code for tokens
     flow.fetch_token(code=code)
-
-    # Clear state from session immediately after use (single-use)
-    session_store.set_data(session_id, "oauth_state", None)
-    session_store.set_data(session_id, "code_verifier", None)
 
     logger.info("Authorization code exchanged successfully for session %s.", session_id)
     return flow.credentials

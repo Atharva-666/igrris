@@ -322,8 +322,8 @@ async def auth_callback(
     session_id, session_data = get_or_create_session(request, response)
 
     try:
-        # Step 2 & 3: Validate state + exchange code (raises on CSRF mismatch)
-        creds = exchange_code(body.code, session_id)
+        # Step 2 & 3: Validate state + exchange code
+        creds = exchange_code(body.code, session_id, body.state)
     except Exception as exc:
         logger.error("OAuth callback failed for session %s: %s", session_id, exc)
         raise HTTPException(
