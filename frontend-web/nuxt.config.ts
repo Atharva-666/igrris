@@ -57,7 +57,6 @@ export default defineNuxtConfig({
         },
       ],
       link: [
-        { rel: 'preload', href: '/Igrris.mp4', as: 'fetch', type: 'video/mp4' },
         { rel: 'icon', type: 'image/png', href: '/favicon/favicon-96x96.png', sizes: '96x96' },
         { rel: 'icon', type: 'image/svg+xml', href: '/favicon/favicon.svg' },
         { rel: 'shortcut icon', href: '/favicon/favicon.ico' },

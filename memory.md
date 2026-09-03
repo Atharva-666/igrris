@@ -300,7 +300,11 @@ Add `https://your-app.vercel.app/login` to:
 ### 19. Vercel Analytics Integration & Deploy Fix
 - Installed `@vercel/analytics` package for frontend page view & real-time visitor tracking.
 - Created client plugin `frontend-web/app/plugins/vercel-analytics.client.ts` to automatically initialize analytics in production.
-- **Vercel Deploy Fix**: Fixed `vue-router` version in `frontend-web/package.json` to `"^4.5.0"` (Vue 3 standard) and added `frontend-web/.npmrc` with `legacy-peer-deps=true` so Vercel's automated `npm install` runs cleanly without `ERESOLVE` peer dependency conflicts. Verified with full `npm run build`.
+- **Vercel Deploy Fix**: Fixed `vue-router` version in [frontend-web/package.json](file:///c:/Users/VICTUS/OneDrive/Attachments/Desktop/igrris/frontend-web/package.json) with `overrides` and added both [.npmrc](file:///c:/Users/VICTUS/OneDrive/Attachments/Desktop/igrris/.npmrc) (root) and [frontend-web/.npmrc](file:///c:/Users/VICTUS/OneDrive/Attachments/Desktop/igrris/frontend-web/.npmrc) with `legacy-peer-deps=true` so Vercel's automated `npm install` runs cleanly without `ERESOLVE` peer dependency conflicts. Verified with full `npm run build`.
+
+### 20. Production CORS & Preload Warning Fix
+- Added `https://igrris.vercel.app` to default allowed origins and added `allow_origin_regex=r"^https:\/\/.*\.vercel\.app$"` in [backend/igrris_api.py](file:///c:/Users/VICTUS/OneDrive/Attachments/Desktop/igrris/backend/igrris_api.py) so all production and preview Vercel deployments pass preflight CORS checks cleanly with cookies enabled (`allow_credentials=True`).
+- Removed `as: 'fetch'` preload for `Igrris.mp4` in [frontend-web/nuxt.config.ts](file:///c:/Users/VICTUS/OneDrive/Attachments/Desktop/igrris/frontend-web/nuxt.config.ts) to eliminate browser preload console warnings.
 
 ---
 
