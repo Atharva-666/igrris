@@ -363,6 +363,10 @@ Add `https://your-app.vercel.app/login` to:
 - **Configuration & Documentation Alignment**:
   - Updated `backend/config.py` docstrings to explain Render persistent disks (`/var/data/credentials`) vs free tier ephemeral storage.
   - Updated root `.env.example` and `frontend-web/.env.example` to document Render URL (`https://your-backend.onrender.com`).
+- **Dependencies Audit & Lean Production Manifest (`backend/requirements.txt` & `requirements.txt`)**:
+  - **Explicit `PyYAML>=6.0,<7.0` added**: `backend/classifier/rule_engine.py` directly parses `rules_config.yaml` with `import yaml`. Previously unlisted and relied on transitive installation. Explicitly locked now to guarantee zero runtime import failures.
+  - **Removed `streamlit` bloat**: Removed legacy `streamlit>=1.30,<2.0` from both backend manifests. Prevents Render from pulling in ~150MB of heavy dependencies (`pyarrow`, `altair`, `tornado`, `watchdog`), drastically speeding up Render pip installation and keeping memory within Render Free tier's 512MB RAM limit.
+
 
 ---
 
