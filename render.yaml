@@ -1,0 +1,38 @@
+# Render Blueprint specification for Igrris AI Backend
+# Documentation: https://render.com/docs/blueprint-spec
+
+services:
+  - type: web
+    name: igrris-backend
+    runtime: python
+    buildCommand: pip install -r requirements.txt && python -m nltk.downloader punkt punkt_tab stopwords
+    startCommand: uvicorn backend.igrris_api:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: DEBUG
+        value: "false"
+      - key: ALLOWED_ORIGINS
+        sync: false
+        # e.g. https://igrris.vercel.app
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: REDIRECT_URI
+        sync: false
+        # e.g. https://igrris.vercel.app/login
+      - key: CREDENTIALS_DIR
+        sync: false
+        # Optional: Set to /var/data/credentials if using a Persistent Disk (Starter plan)
+        # Defaults to ./credentials in repo root for Free Tier (ephemeral)
+
+    # NOTE: Persistent Disks require a paid plan (Starter $7/mo).
+    # For Free Tier deployment, keep disk commented out.
+    # To enable persistent multi-user credentials across container reboots on Starter plan, uncomment:
+    # disk:
+    #   name: credentials-data
+    #   mountPath: /var/data/credentials
+    #   sizeGB: 1

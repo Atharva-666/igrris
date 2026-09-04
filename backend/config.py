@@ -21,8 +21,8 @@ GOOGLE_CLIENT_ID: str = os.environ.get("GOOGLE_CLIENT_ID", "")
 GOOGLE_CLIENT_SECRET: str = os.environ.get("GOOGLE_CLIENT_SECRET", "")
 
 # Redirect URI must EXACTLY match what is registered in Google Cloud Console.
-# For production (Railway backend):  https://<railway-domain>/auth/callback
-# For local dev:                     http://localhost:8000/auth/callback
+# For production (Vercel frontend):   https://<your-vercel-domain>/login
+# For local dev:                      http://localhost:8501/login
 REDIRECT_URI: str = os.environ.get("REDIRECT_URI", "http://localhost:8000/auth/callback")
 
 # ---------------------------------------------------------------------------
@@ -41,15 +41,17 @@ SCOPES: list[str] = [
 # ---------------------------------------------------------------------------
 # Per-user credential storage directory
 #
-# CREDENTIALS_DIR is configurable via environment variable so Railway volumes
-# can be mounted at any path.
+# CREDENTIALS_DIR is configurable via environment variable so persistent
+# volumes can be mounted at any path.
 #
-# Railway production:  Set CREDENTIALS_DIR=/app/credentials
-#                      (mount a Railway persistent Volume there for persistence)
+# Render Starter plan: Set CREDENTIALS_DIR=/var/data/credentials (with Persistent Disk)
+# Render Free tier:    Defaults to <project_root>/credentials/ (ephemeral)
+# Railway production:  Set CREDENTIALS_DIR=/app/credentials (with Volume)
 # Local dev:           Defaults to <project_root>/credentials/
 #
 # NEVER use a single global token.json — each user gets their own file.
 # ---------------------------------------------------------------------------
+
 CREDENTIALS_DIR: str = os.environ.get(
     "CREDENTIALS_DIR",
     os.path.join(_ROOT, "credentials"),

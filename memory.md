@@ -328,7 +328,7 @@ Add `https://your-app.vercel.app/login` to:
    - The in-memory session store (`_SessionStore`) lives in backend RAM. If Railway restarts, active in-flight OAuth attempts are wiped, requiring a fresh login click.
    - For user credentials to survive Railway redeployments, a Railway Persistent Volume must be mounted at `/app/credentials` and `CREDENTIALS_DIR=/app/credentials` set in environment variables.
 
-### Environment Variable Checklist
+### Environment Variable Checklist (Railway)
 
 | Location | Variable | Value Description |
 |---|---|---|
@@ -341,3 +341,65 @@ Add `https://your-app.vercel.app/login` to:
 | **Railway (Backend)** | `DEBUG` | `false` (enables `Secure=True`, `SameSite=None`) |
 | **Railway (Backend)** | `CREDENTIALS_DIR` | `/app/credentials` (with Railway Volume mounted) |
 | **Google Cloud Console** | Authorized Redirect URI | `https://igrris.vercel.app/login` and `http://localhost:8501/login` |
+
+---
+
+## Session Change Log (2026-09-04)
+
+### 21. Backend Deployment on Render (FastAPI Web Service)
+
+- **Render Blueprint Spec (`render.yaml`)**:
+  - Service Type: `web`
+  - Name: `igrris-backend`
+  - Runtime: `python` (pinned to 3.11.9 via `.python-version`)
+  - Build Command: `pip install -r requirements.txt && python -m nltk.downloader punkt punkt_tab stopwords` (pre-caches NLTK tokenizers so healthchecks don't timeout)
+  - Start Command: `uvicorn backend.igrris_api:app --host 0.0.0.0 --port $PORT`
+  - Health Check: `/health` (liveness probe on FastAPI)
+  - Auto Deploy: `true` (deploys automatically on git push)
+- **Python Version Pinning (`.python-version`)**:
+  - Added `.python-version` with `3.11.9` ensuring Render's Python builder compiles Scikit-Learn, NumPy, and Pandas without ABI discrepancies.
+- **NLTK Buildpack Optimization (`nltk.txt`)**:
+  - Updated `nltk.txt` with `stopwords`, `punkt`, and `punkt_tab` for automated tokenizer provisioning across cloud buildpacks.
+- **Configuration & Documentation Alignment**:
+  - Updated `backend/config.py` docstrings to explain Render persistent disks (`/var/data/credentials`) vs free tier ephemeral storage.
+  - Updated root `.env.example` and `frontend-web/.env.example` to document Render URL (`https://your-backend.onrender.com`).
+
+---
+
+## Production Deployment Context (Vercel + Render)
+
+### Architecture Context
+- **Frontend**: Nuxt 3 hosted on **Vercel** (`https://igrris.vercel.app`).
+- **Backend**: FastAPI hosted on **Render** (`https://igrris-backend.onrender.com`).
+- **Google Cloud Console**: OAuth 2.0 Client credentials registered with authorized redirect URI `https://igrris.vercel.app/login`.
+
+### Environment Variable Checklist (Render)
+
+| Location | Variable | Value Description |
+|---|---|---|
+| **Render (Backend)** | `PYTHON_VERSION` | `3.11.9` |
+| **Render (Backend)** | `GOOGLE_CLIENT_ID` | Google OAuth Client ID (from Google Cloud Console) |
+| **Render (Backend)** | `GOOGLE_CLIENT_SECRET` | Google OAuth Client Secret |
+| **Render (Backend)** | `REDIRECT_URI` | `https://igrris.vercel.app/login` |
+| **Render (Backend)** | `ALLOWED_ORIGINS` | `https://igrris.vercel.app` |
+| **Render (Backend)** | `DEBUG` | `false` (forces `SameSite=None; Secure=True` for cross-origin cookies) |
+| **Render (Backend)** | `CREDENTIALS_DIR` | (Optional) `/var/data/credentials` if using Render Persistent Disk (Starter $7/mo plan). Otherwise leave unset to default to `./credentials` in container. |
+| **Vercel (Frontend)** | `NUXT_PUBLIC_API_BASE` | `https://igrris-backend.onrender.com` (Update from old Railway URL) |
+| **Vercel (Frontend)** | `NUXT_PUBLIC_GOOGLE_CLIENT_ID` | Google OAuth Client ID |
+| **Google Cloud Console** | Authorized Redirect URI | `https://igrris.vercel.app/login` (and `http://localhost:8501/login` for dev) |
+| **Google Cloud Console** | Authorized JavaScript Origins | `https://igrris.vercel.app` (and `http://localhost:8501` for dev) |
+
+### Render Deploy Options
+1. **Option A (Blueprint — Automated)**:
+   - In Render Dashboard: **New +** → **Blueprint** → Select GitHub repository `Atharva-666/igrris`.
+   - Render reads `render.yaml` automatically and configures the web service, build command, start command, and health check.
+   - Enter your secrets (`GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `ALLOWED_ORIGINS`, `REDIRECT_URI`) when prompted.
+2. **Option B (Manual Web Service)**:
+   - In Render Dashboard: **New +** → **Web Service** → Connect GitHub repository.
+   - Name: `igrris-backend`
+   - Runtime: `Python 3`
+   - Build Command: `pip install -r requirements.txt && python -m nltk.downloader punkt punkt_tab stopwords`
+   - Start Command: `uvicorn backend.igrris_api:app --host 0.0.0.0 --port $PORT`
+   - Health Check Path: `/health`
+   - Add environment variables according to the table above.
+
