@@ -422,6 +422,7 @@ Add `https://your-app.vercel.app/login` to:
   - Server-Sent Events (SSE) live streaming scan engine (`/scan/stream`) with thread-safe abort.
   - Production deployments configured on Render, Railway, and Vercel.
   - 39 passing unit and integration test cases.
+  - **Section 1.9 Added**: Comprehensive breakdown of 14 technical bugs, root causes, and exact code modifications (multi-user session isolation, cross-origin SSE token bridge, OAuth state loss, threat feed runtime segregation, results table vanishing condition fix, FOUC blocking script, Render 512MB RAM optimization, WebKit text gradient drop-shadow fix, mobile overflow tuning, and system label deletion guards).
 - **75% Remaining Roadmap Breakdown**:
   - **Phase 2 (25% → 50%)**: Deep Learning & Threat Forensics — Fine-tuned Transformer models (DistilBERT/RoBERTa), BEC & urgency intent detection, cryptographic email header forensics (SPF, DKIM, DMARC), dynamic URL unshortening & sandbox, attachment hash/macro scanner.
   - **Phase 3 (50% → 70%)**: Event-Driven Inbox Defense — Google Cloud Pub/Sub push webhooks (`users.watch`) for sub-1.5s zero-click threat interception, Celery + Redis distributed worker queue, automated quarantine & safe link defanging, visual user policy & heuristic rule builder.
