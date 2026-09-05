@@ -1,185 +1,627 @@
-# ⚔️ IGRRIS: AI-Powered Gmail Intelligence & Threat Defense
-# Project Progress & Technical Roadmap Report
+<div align="center">
 
-**Document Reference:** IGRRIS-PR-2026-Q3-01  
-**Current Milestone Status:** **25% COMPLETED | 75% REMAINING**  
-**Reporting Period:** Phase 1 Completion & Phase 2–5 Planning  
-**Target Delivery Date:** Q4 2026  
-**Repository:** [Atharva-666/igrris](https://github.com/Atharva-666/igrris)  
-**Lead Architecture:** Full-Stack AI & Cybersecurity (FastAPI, Nuxt 3, Scikit-Learn, Google Workspace API)
+# ⚔️ IGRRIS
+
+### AI-Powered Gmail Intelligence & Threat Defense
+
+**Autonomous Inbox Intelligence • Threat Detection • Gmail Security**
+
+<br>
+
+[![Status](https://img.shields.io/badge/STATUS-25%25%20COMPLETED-orange?style=for-the-badge)](#-project-status)
+[![Target](https://img.shields.io/badge/TARGET-Q4%202026-blue?style=for-the-badge)](#-roadmap)
+[![Backend](https://img.shields.io/badge/BACKEND-FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)](#-technology-stack)
+[![Frontend](https://img.shields.io/badge/FRONTEND-Nuxt%203-00DC82?style=for-the-badge&logo=nuxtdotjs&logoColor=white)](#-technology-stack)
+[![ML](https://img.shields.io/badge/ML-Scikit--Learn-F7931E?style=for-the-badge&logo=scikit-learn&logoColor=white)](#-technology-stack)
+[![Gmail](https://img.shields.io/badge/API-Gmail-EA4335?style=for-the-badge&logo=gmail&logoColor=white)](#-technology-stack)
+
+<br>
+
+> **🛡️ Intelligent Email · Real-Time Threat Detection · Automated Defense**
+
+**25% COMPLETE**
+
+`██████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░`
+
+**75% REMAINING → 100% TARGET**
+
+<br>
+
+[🚀 Repository](https://github.com/Atharva-666/igrris) •
+[🤖 Machine Learning](#-phase-2-machine-learning--nlp) •
+[🛡️ Threat Intelligence](#️-phase-3-threat-intelligence--streaming) •
+[☁️ Deployment](#️-phase-5-production-testing--deployment)
+
+</div>
 
 ---
 
-## Executive Summary
+# 🧭 Project Overview
 
-Email remains the #1 initial infection vector for cyberattacks. Traditional email security either relies on blunt spam filters that miss sophisticated spear-phishing or on enterprise appliances that are expensive and complex.
+**IGRRIS** is a full-stack AI-powered Gmail intelligence and threat-defense platform.
 
-**Igrris** is an autonomous, full-stack inbox intelligence and threat defense system bridging the gap between high-speed threat intelligence, machine learning classification, and native Gmail workflow integration.
+It combines:
 
+- 🤖 Machine Learning
+- 🧠 Natural Language Processing
+- 🛡️ Threat Intelligence
+- 📧 Gmail API
+- 🔐 Google OAuth 2.0
+- ⚡ Server-Sent Events
+- 🏷️ Automated Gmail Labeling
+- ☁️ Cloud Deployment
+
+The goal is to transform a normal Gmail inbox into an **intelligent security layer** capable of detecting, classifying, monitoring, and organizing suspicious email activity.
+
+---
+
+# 📌 Project Information
+
+| Property               | Details                                                     |
+| :--------------------- | :---------------------------------------------------------- |
+| **Document Reference** | `IGRRIS-PR-2026-Q3-01`                                      |
+| **Current Status**     | 🟠 **25% Completed · 75% Remaining**                        |
+| **Reporting Period**   | Phase 1 Completion & Phase 2–5 Planning                     |
+| **Target Delivery**    | **Q4 2026**                                                 |
+| **Architecture**       | Full-Stack AI & Cybersecurity                               |
+| **Repository**         | [Atharva-666/igrris](https://github.com/Atharva-666/igrris) |
+
+---
+
+# 📊 Project Status
+
+| Milestone                             |  Weight  |      Status      | Focus                               |
+| :------------------------------------ | :------: | :--------------: | :---------------------------------- |
+| 🏗️ **01 · Architectural Foundations** | **25%**  | 🟢 **COMPLETED** | FastAPI, OAuth 2.0, Nuxt 3, Gmail   |
+| 🤖 **02 · Machine Learning Pipeline** | **25%**  |  🔵 **PLANNED**  | NLP, TF-IDF, LinearSVC              |
+| 🛡️ **03 · Threat Intel & Streaming**  | **20%**  |  🔵 **PLANNED**  | URLhaus, OpenPhish, SSE             |
+| 🏷️ **04 · Automated Labeling & UX**   | **15%**  |  🔵 **PLANNED**  | 11 labels, safety guards, mobile UI |
+| ☁️ **05 · Production & Testing**      | **15%**  |  🔵 **PLANNED**  | Vercel, Render, Railway, pytest     |
+| 🚀 **TOTAL PROJECT**                  | **100%** |  🎯 **TARGET**   | End-to-End Inbox Defense            |
+
+---
+
+# 🧠 How IGRRIS Works
+
+```text
+                         ┌─────────────────────┐
+                         │       📧 GMAIL      │
+                         └──────────┬──────────┘
+                                    │
+                                    ▼
+                         ┌─────────────────────┐
+                         │   🔎 INGESTION      │
+                         │       LAYER         │
+                         └──────────┬──────────┘
+                                    │
+                 ┌──────────────────┴──────────────────┐
+                 │                                     │
+                 ▼                                     ▼
+       ┌─────────────────────┐              ┌─────────────────────┐
+       │ 🛡️ THREAT INTEL     │              │ 🤖 AI / ML ENGINE   │
+       │                     │              │                     │
+       │ URLhaus             │              │ NLP                 │
+       │ OpenPhish           │              │ TF-IDF              │
+       │ URL Detection       │              │ LinearSVC            │
+       └──────────┬──────────┘              └──────────┬──────────┘
+                  │                                    │
+                  └────────────────┬───────────────────┘
+                                   ▼
+                         ┌─────────────────────┐
+                         │ ⚡ SCAN / DECISION  │
+                         │       ENGINE        │
+                         └──────────┬──────────┘
+                                    │
+                    ┌───────────────┼────────────────┐
+                    ▼               ▼                ▼
+             ┌────────────┐ ┌────────────┐ ┌──────────────┐
+             │ 🏷️ LABELS  │ │ 📡 SSE     │ │ 📊 DASHBOARD │
+             │            │ │ STREAMING  │ │              │
+             └────────────┘ └────────────┘ └──────────────┘
 ```
-Overall Project Progress
-[██████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 25% Complete
-├── Completed (25%): Architecture, Google OAuth 2.0, Nuxt 3 UI Shell, Basic Gmail API Connection
-└── Remaining (75%): Machine Learning Pipeline, Threat Intelligence Feeds, SSE Streaming, Label Management, Cloud Deployments
+
+---
+
+# 🧰 Technology Stack
+
+| Layer                      | Technologies                                   |
+| :------------------------- | :--------------------------------------------- |
+| 🎨 **Frontend**            | Nuxt 3 · Vue 3                                 |
+| ⚙️ **Backend**             | Python 3.11+ · FastAPI · Uvicorn · Pydantic v2 |
+| 🤖 **AI / ML**             | Scikit-Learn · NLTK · TF-IDF · LinearSVC       |
+| 📧 **Email**               | Google Gmail REST API                          |
+| 🔐 **Authentication**      | Google OAuth 2.0 · HTTP-only Sessions          |
+| 🛡️ **Threat Intelligence** | URLhaus · OpenPhish                            |
+| ⚡ **Realtime**            | Server-Sent Events (SSE)                       |
+| ☁️ **Deployment**          | Vercel · Render · Railway                      |
+| 🧪 **Testing**             | pytest                                         |
+
+---
+
+# ✅ SECTION 01 — Completed Work
+
+<details open>
+<summary><strong>🏗️ 1.1 Core System Architecture & Backend Framework</strong></summary>
+
+### ⚙️ FastAPI Engine
+
+- Modular Python 3.11+ backend.
+- FastAPI asynchronous request handling.
+- Uvicorn application server.
+- Pydantic v2 data validation.
+- Architecture separated into scalable layers.
+
+```text
+backend/
+├── auth/
+├── services/
+├── ai/
+└── labels/
 ```
 
-This report documents:
-1. **The 25% Completed Work:** The core infrastructure, Google OAuth session isolation, responsive Nuxt 3 interface, and basic Gmail integration.
-2. **The 75% Remaining Roadmap:** A technical blueprint detailing the four upcoming phases—machine learning integration, real-time threat intelligence pre-filters, Server-Sent Events (SSE) streaming engines, and production cloud deployment.
+</details>
 
 ---
 
-## High-Level Progress Gauge
+<details open>
+<summary><strong>🔐 1.2 Enterprise OAuth 2.0 & Multi-User Session Isolation</strong></summary>
 
-| Milestone Stage | Percentage | Focus Area | Status |
-|---|:---:|---|:---:|
-| **Milestone 1: Architectural Foundations** | **25%** | FastAPI Core, OAuth 2.0, Nuxt 3 UI Shell, Base Gmail Connection | **COMPLETED** |
-| **Milestone 2: Machine Learning Pipeline** | **25%** | 5-Stage NLP Preprocessing, TF-IDF Vectorizer, LinearSVC Model | **PLANNED (Upcoming)** |
-| **Milestone 3: Threat Intel & Streaming** | **20%** | URLhaus/OpenPhish Feeds, Pre-Filter Engine, SSE Streaming Engine | **PLANNED** |
-| **Milestone 4: Automated Labeling & UX** | **15%** | 11 Color-Coded Labels, Deletion Guards, Mobile Slide-Over UI | **PLANNED** |
-| **Milestone 5: Production Scale & Testing** | **15%** | Render/Vercel Cloud Deployments, Automated Test Suite, FOUC Fixes | **PLANNED** |
-| **Total Project Scope** | **100%** | Comprehensive End-to-End Enterprise Inbox Security Platform | — |
+### Authentication
 
----
+- Google OAuth 2.0 integration.
+- Confidential client credentials.
+- Automated refresh-token handling.
+- Clean session revocation.
+- Cryptographically signed `igrris_session` HTTP-only cookies.
 
-# SECTION 1: The 25% Completed Work
-*(Milestone 1: Architectural Foundations & Authentication MVP)*
+### Credential Isolation
 
-### 1.1 Core System Architecture & Backend Framework
-- **Asynchronous FastAPI Engine:** Built a modular Python 3.11+ backend utilizing FastAPI, Uvicorn, and Pydantic v2 for high-throughput request handling and strict data contract validation.
-- **Micro-service Separation:** Codebase partitioned into distinct layers mapping to `auth`, `services`, `ai`, and `labels` to ensure scalability for the upcoming phases.
+```text
+credentials/
+│
+├── <user_id_1>.json
+├── <user_id_2>.json
+├── <user_id_3>.json
+└── ...
+```
 
-### 1.2 Enterprise-Grade OAuth 2.0 & Multi-User Session Isolation
-- **Secure Authentication Flow:** Integrated Google OAuth 2.0 with confidential client credentials, automated refresh token handling, and clean session revocation.
-- **Cryptographic Session Isolation:** Engineered `backend/auth/session.py` with an in-memory session manager issuing cryptographically signed `igrris_session` HTTP-only cookies.
-- **Credential Segregation:** Eliminated global token risks by isolating each authenticated user's tokens into path-traversal-proof files (`credentials/<user_id>.json`).
+Each authenticated user's credentials are isolated to prevent global token collisions.
 
-### 1.3 Modern Reactive Frontend (Nuxt 3 / Vue 3)
-- **Unified Single-Page Experience:** Merged hero landing and scan dashboard into `index.vue` with seamless authentication switching.
-- **Visual Polish & Inspira UI:**
-  - Brand identity: Custom `EncryptedText.vue` cyber cipher scramble header component and 6-stop high-contrast metallic typography.
-  - Dark glassmorphic aesthetic with canvas background effects (`WavyBackground.vue`, `SplashScreen.vue`).
-
-### 1.4 Basic Gmail API Integration
-- **Native Gmail Integration:** Established direct interaction with the Google Workspace Gmail REST API using `google-api-python-client`.
-- **Fetch Pipeline:** Engineered the foundational batching mechanisms needed to retrieve user inboxes safely, laying the groundwork for the upcoming scan engine.
+</details>
 
 ---
 
-### 1.5 Engineering Challenges Resolved in Phase 1
+<details open>
+<summary><strong>🎨 1.3 Modern Reactive Frontend — Nuxt 3 / Vue 3</strong></summary>
 
-During the development of the initial 25% milestone, several complex architectural bugs and security vulnerabilities were resolved:
+### UI
 
-| Subsystem | Issue / Bug Encountered | Code Modification Applied |
-|---|---|---|
-| **Auth** | Multi-User Credential Collisions | Built `backend/auth/session.py` with isolated `credentials/<user_id>.json` and UUID traversal guards. |
-| **OAuth** | CSRF State Loss Across Restarts | Configured `Flow.from_client_config(..., autogenerate_code_verifier=False)` in `oauth.py` to preserve state. |
-| **Styling** | WebKit Text Gradient Disappearance | Replaced inline `text-shadow` with CSS `filter: drop-shadow(...)` to fix metallic text gradients in `EncryptedText.vue`. |
-| **Build** | Vercel Automated Deploy `ERESOLVE` | Added `.npmrc` with `legacy-peer-deps=true` and enforced `overrides` in `package.json`. |
+- Unified landing page and scan dashboard.
+- Seamless authentication switching.
+- Cyber-themed visual identity.
+- Dark glassmorphic aesthetic.
+- Canvas background effects.
 
----
+### Custom Components
 
-# SECTION 2: The 75% Remaining Work
-*(The Forward Implementation Roadmap: Phases 2 through 5)*
+```text
+EncryptedText.vue
+WavyBackground.vue
+SplashScreen.vue
+```
 
-The remaining 75% of the project transitions Igrris from a foundational skeleton into an **autonomous, machine-learning-powered inbox security platform**. This work is broken down into four strategic phases based on the actual components required for our final delivery.
-
----
-
-## 2.1 Phase 2: Machine Learning & NLP Pipeline
-**Milestone Progress:** 25% → 50% (+25%)  
-**Primary Focus:** Integrating advanced Natural Language Processing and Classification models.
-
-### A. 5-Stage NLP Preprocessing Pipeline
-- **Text Normalization:** Lowercasing, Unicode sanitization, and Alphanumeric filtering.
-- **Tokenization:** Sentence and word tokenization using NLTK `punkt`.
-- **Lexical Generalization:** Context-preserving stopword removal and Porter Stemming.
-
-### B. Vectorization & Classification Engine
-- **Feature Extraction:** Implement TF-IDF vectorization with `max_features=3000`, sublinear TF scaling, and n-gram ranges.
-- **Predictive Inference:** Train a `LinearSVC` classifier wrapped in `CalibratedClassifierCV` (sigmoid calibration) to compute continuous confidence probabilities (`predict_proba`).
-- **Goal:** Achieve >95% overall accuracy and a high F1-score on standard spam/phishing corpora.
+</details>
 
 ---
 
-## 2.2 Phase 3: Threat Intelligence & Streaming Defense
-**Milestone Progress:** 50% → 70% (+20%)  
-**Primary Focus:** Pre-filtering known threats and streaming live results to the UI.
+<details open>
+<summary><strong>📧 1.4 Gmail API Integration</strong></summary>
 
-### A. Dual-Layer Threat Intelligence Pre-filter
-- **Live Feed Ingestion:** Integrate active indicators from **URLhaus** and **OpenPhish**.
-- **Atomic Updates & Caching:** Build an updater that separates `SEED_DATA_DIR` and `RUNTIME_DATA_DIR`, using atomic `.tmp` file replacements to prevent Git dirty states during live updates.
-- **Deterministic Evaluation:** Intercept and flag malicious URLs via a Regex engine before they even reach the ML model.
+### Current Capabilities
 
-### B. Real-Time Server-Sent Events (SSE) Streaming
-- **Asynchronous Live Telemetry:** Replace sluggish REST polling with an active SSE pipeline (`GET /scan/stream`).
-- **Cross-Origin Token Bridge:** Implement single-use, 60-second scan tokens (`POST /scan/token`) to bridge browser `EventSource` connections with strict cross-origin cookie policies.
-- **Vue DOM Optimization:** Implement an SSE event batch queue flushing every 100ms to eliminate frontend reactivity thrashing during rapid scanning.
+- Direct Google Workspace Gmail REST API interaction.
+- `google-api-python-client`.
+- Foundational inbox fetching.
+- Batching mechanisms for safe retrieval.
+- Architecture prepared for the scan engine.
 
----
-
-## 2.3 Phase 4: Automated Labeling & User Experience
-**Milestone Progress:** 70% → 85% (+15%)  
-**Primary Focus:** Automated organization within Gmail and frontend polish.
-
-### A. 11-Category Taxonomy & Automated Action
-- **Managed Labels:** Create 11 color-coded managed labels (🔴 Phishing, 🟥 Spam, 🔵 Security, 🟡 Needs Review, 🟢 Banking, 🟣 Orders, 🔷 Work, etc.).
-- **Label Management API:** Add endpoints for safe label creation and deletion.
-- **Label Safety Guards:** Implement strict logic in `backend/labels/manager.py` to explicitly block the accidental deletion of core system folders (`INBOX`, `SPAM`, `TRASH`).
-
-### B. UI Polish & Mobile Responsiveness
-- **Scan Stats Dashboard:** Develop a dynamic dashboard displaying threats neutralized and current progress.
-- **Mobile Slide-Over Panel:** Implement a responsive slide-over email detail panel (`EmailDetails.vue`) and horizontal scroll containers for <430px viewports.
-- **Eliminate FOUC:** Fix Flash of Unstyled Content by injecting early DOM blocking scripts into `nuxt.config.ts`.
+</details>
 
 ---
 
-## 2.4 Phase 5: Production Scale, Testing & Deployment
-**Milestone Progress:** 85% → 100% (+15%)  
-**Primary Focus:** Hardening for the cloud and comprehensive quality assurance.
+# 🐛 Engineering Challenges Resolved
 
-### A. Production Cloud Deployments
-- **Frontend Hosting:** Deploy the Nuxt 3 application on **Vercel** with automated GitHub CI/CD integration.
-- **Backend Hosting:** Configure production blueprints for **Render** (`render.yaml`) and **Railway** (`railway.toml`).
-- **Memory Optimization:** Pin Python versions, remove legacy heavy libraries (e.g., Streamlit), and pre-cache NLTK tokenizers during the build phase to stay under 512MB RAM free-tier limits.
-
-### B. Automated Testing & Final QA
-- **Test Suite:** Develop comprehensive unit and integration tests using `pytest` for the preprocessing, prediction, API, and labeling layers.
-- **Final Packaging:** Ensure CORS preflight rules allow dynamically generated staging environments. Complete the final release candidate.
+| Subsystem      | Issue                              | Resolution                                                    |
+| :------------- | :--------------------------------- | :------------------------------------------------------------ |
+| 🔐 **Auth**    | Multi-user credential collisions   | Isolated `credentials/<user_id>.json` + UUID traversal guards |
+| 🔑 **OAuth**   | CSRF state loss across restarts    | OAuth flow configuration updated                              |
+| 🎨 **Styling** | WebKit text-gradient disappearance | CSS `filter: drop-shadow(...)`                                |
+| 🚀 **Build**   | Vercel `ERESOLVE`                  | `.npmrc` + package dependency overrides                       |
 
 ---
 
-## Implementation Schedule & Milestones
+# 🚧 SECTION 02 — Remaining 75%
+
+The remaining roadmap transitions IGRRIS from its foundational architecture into an **autonomous machine-learning-powered inbox security platform**.
+
+---
+
+# 🤖 PHASE 2 — Machine Learning & NLP
+
+### `25% → 50%` · **+25%**
+
+## 🧠 5-Stage NLP Pipeline
+
+```text
+📨 RAW EMAIL
+     │
+     ▼
+┌──────────────────────┐
+│ 🧹 Text Normalization │
+└──────────┬───────────┘
+           ▼
+┌──────────────────────┐
+│ 🔤 Tokenization       │
+└──────────┬───────────┘
+           ▼
+┌──────────────────────┐
+│ 🧽 Stopword Processing│
+└──────────┬───────────┘
+           ▼
+┌──────────────────────┐
+│ 🌱 Porter Stemming    │
+└──────────┬───────────┘
+           ▼
+┌──────────────────────┐
+│ 📊 TF-IDF             │
+└──────────┬───────────┘
+           ▼
+┌──────────────────────┐
+│ 🧠 LinearSVC          │
+│ + Calibration         │
+└──────────┬───────────┘
+           ▼
+      🎯 PREDICTION
+```
+
+### Planned Components
+
+- Text normalization.
+- Lowercasing.
+- Unicode sanitization.
+- Alphanumeric filtering.
+- NLTK `punkt` tokenization.
+- Context-preserving stopword removal.
+- Porter stemming.
+- TF-IDF vectorization.
+- `max_features=3000`.
+- Sublinear TF scaling.
+- N-gram features.
+- `LinearSVC`.
+- `CalibratedClassifierCV` with sigmoid calibration.
+
+### 🎯 Model Goal
+
+> **Target: >95% overall accuracy with a strong F1-score on standard spam/phishing corpora.**
+
+---
+
+# 🛡️ PHASE 3 — Threat Intelligence & Streaming
+
+### `50% → 70%` · **+20%**
+
+## 🌐 Dual-Layer Threat Intelligence
+
+```text
+       URLhaus
+          │
+          │
+       OpenPhish
+          │
+          ▼
+┌──────────────────────┐
+│ 🛡️ THREAT INTEL      │
+│     PRE-FILTER       │
+└──────────┬───────────┘
+           │
+           ▼
+    🚨 KNOWN THREAT?
+       │          │
+      YES         NO
+       │          │
+       ▼          ▼
+   🚫 FLAG     🤖 ML MODEL
+                    │
+                    ▼
+               🎯 CLASSIFY
+```
+
+### Planned Features
+
+- Active URLhaus feed ingestion.
+- OpenPhish feed ingestion.
+- Runtime threat data.
+- `SEED_DATA_DIR` / `RUNTIME_DATA_DIR` separation.
+- Atomic `.tmp` file replacement.
+- Regex-based malicious URL interception before ML inference.
+
+---
+
+## ⚡ Real-Time SSE Streaming
+
+```text
+Frontend
+   │
+   │ POST /scan/token
+   ▼
+┌─────────────────┐
+│ 60-Second Token │
+└────────┬────────┘
+         │
+         ▼
+GET /scan/stream
+         │
+         ▼
+┌─────────────────┐
+│   SSE ENGINE    │
+└────────┬────────┘
+         │
+         ▼
+     📡 Events
+         │
+         ▼
+┌─────────────────┐
+│ Vue Dashboard   │
+└─────────────────┘
+```
+
+### Performance
+
+SSE events will use a **100ms batching queue** to reduce frontend reactivity overhead during rapid scanning.
+
+---
+
+# 🏷️ PHASE 4 — Automated Labeling & UX
+
+### `70% → 85%` · **+15%**
+
+## 📂 11-Category Gmail Taxonomy
+
+```text
+📨 INCOMING EMAIL
+       │
+       ▼
+   🔎 IGRRIS
+    ANALYSIS
+       │
+       ├── 🔴 PHISHING
+       ├── 🟥 SPAM
+       ├── 🔵 SECURITY
+       ├── 🟡 NEEDS REVIEW
+       ├── 🟢 BANKING
+       ├── 🟣 ORDERS
+       ├── 🔷 WORK
+       └── ... MORE CATEGORIES
+```
+
+### 🏷️ Automated Labeling
+
+- 11 managed color-coded Gmail labels.
+- Safe label creation APIs.
+- Safe label deletion APIs.
+- Automatic organization of classified email.
+
+### 🔒 Label Safety Guards
+
+Core Gmail system folders will be protected:
+
+```text
+🚫 INBOX
+🚫 SPAM
+🚫 TRASH
+```
+
+---
+
+## 📱 UI / UX Improvements
+
+- 📊 Dynamic scan statistics dashboard.
+- 🚨 Threats-neutralized counter.
+- 📧 Responsive email detail panel.
+- 📱 Mobile slide-over interface.
+- ↔️ Horizontal scrolling for `<430px` viewports.
+- ⚡ FOUC prevention.
+- Early DOM-blocking scripts in `nuxt.config.ts`.
+
+---
+
+# ☁️ PHASE 5 — Production, Testing & Deployment
+
+### `85% → 100%` · **+15%**
+
+## 🚀 Production Architecture
+
+```text
+                     ┌──────────────┐
+                     │    GitHub    │
+                     └──────┬───────┘
+                            │
+              ┌─────────────┴─────────────┐
+              │                           │
+              ▼                           ▼
+      ┌───────────────┐           ┌───────────────┐
+      │    Vercel     │           │ Render /       │
+      │   Nuxt 3 UI   │           │ Railway API    │
+      └───────┬───────┘           └───────┬───────┘
+              │                           │
+              └─────────────┬─────────────┘
+                            ▼
+                   ┌──────────────────┐
+                   │  IGRRIS Backend  │
+                   ├──────────────────┤
+                   │ Gmail API        │
+                   │ ML Engine        │
+                   │ Threat Intel     │
+                   │ SSE Engine       │
+                   └──────────────────┘
+```
+
+### ☁️ Deployment Plan
+
+| Component              | Platform  |
+| :--------------------- | :-------- |
+| 🎨 Frontend            | Vercel    |
+| ⚙️ Backend             | Render    |
+| 🔁 Alternative Backend | Railway   |
+| 📦 Source Control      | GitHub    |
+| 📧 Email               | Gmail API |
+
+### 🧠 Resource Optimization
+
+- Pin Python versions.
+- Remove legacy heavy dependencies such as Streamlit.
+- Pre-cache NLTK tokenizers.
+- Optimize memory usage for free-tier constraints.
+- Maintain production-ready cloud configurations.
+
+---
+
+# 🧪 Automated Testing & QA
+
+```text
+                  🧪 TEST SUITE
+                       │
+        ┌──────────────┼──────────────┐
+        ▼              ▼              ▼
+   🤖 Preprocessing  🎯 Prediction   ⚙️ API
+        │              │              │
+        └──────────────┼──────────────┘
+                       ▼
+                  🏷️ Labeling
+                       │
+                       ▼
+                    ✅ QA
+```
+
+### Test Coverage
+
+```text
+pytest
+├── preprocessing tests
+├── prediction tests
+├── API tests
+└── labeling tests
+```
+
+Final QA will also cover CORS preflight behavior and production release packaging.
+
+---
+
+# 🗺️ Roadmap
 
 ```mermaid
 gantt
-    title Igrris Project Timeline: 25% Achieved to 100% Completion
-    dateFormat  YYYY-MM-DD
-    
-    section Completed (25%)
-    Foundations, OAuth and UI Shell              :done, p1, 2026-07-01, 2026-09-05
-    
-    section Phase 2: ML Pipeline (50%)
-    5-Stage NLP Preprocessing Engine             :active, p2_1, 2026-09-08, 2026-09-29
-    TF-IDF and LinearSVC Integration             :p2_2, 2026-09-22, 2026-10-06
-    
-    section Phase 3: Threat Intel (70%)
-    URLhaus & OpenPhish Ingestion                :p3_1, 2026-10-01, 2026-10-15
-    Server-Sent Events (SSE) Streaming           :p3_2, 2026-10-10, 2026-10-22
-    
-    section Phase 4: Labeling (85%)
-    11 Color-Coded Managed Labels                :p4_1, 2026-10-23, 2026-11-06
-    Mobile UI Polish & Deletion Guards           :p4_2, 2026-11-01, 2026-11-15
-    
-    section Phase 5: Deploy (100%)
-    Render and Vercel Cloud Architecture         :p5_1, 2026-11-12, 2026-11-26
-    Pytest Suite & Memory Optimization           :p5_2, 2026-11-20, 2026-12-02
+    title IGRRIS — Project Development Roadmap
+    dateFormat YYYY-MM-DD
+
+    section 🟢 Completed
+    Foundations + OAuth + UI       :done, p1, 2026-07-01, 2026-09-05
+
+    section 🤖 Phase 2 — ML
+    NLP Preprocessing               :active, p2a, 2026-09-08, 2026-09-29
+    TF-IDF + LinearSVC              :p2b, 2026-09-22, 2026-10-06
+
+    section 🛡️ Phase 3 — Threat Intel
+    URLhaus + OpenPhish             :p3a, 2026-10-01, 2026-10-15
+    SSE Streaming                   :p3b, 2026-10-10, 2026-10-22
+
+    section 🏷️ Phase 4 — Labeling
+    Managed Gmail Labels            :p4a, 2026-10-23, 2026-11-06
+    Mobile UX + Safety Guards       :p4b, 2026-11-01, 2026-11-15
+
+    section ☁️ Phase 5 — Production
+    Vercel + Render Architecture    :p5a, 2026-11-12, 2026-11-26
+    pytest + Optimization           :p5b, 2026-11-20, 2026-12-02
 ```
 
 ---
 
-## Conclusion
+# 📈 Milestone Evolution
 
-The first **25%** of the Igrris project has successfully established a fully integrated architectural skeleton, featuring secure Google OAuth 2.0 authentication, modular FastAPI backend design, and a modern Nuxt 3 user interface. 
+```text
+25%                  50%               70%              85%             100%
+ │                     │                 │                │                │
+ ▼                     ▼                 ▼                ▼                ▼
 
-The remaining **75%** of the roadmap outlines the critical integration of the actual intelligence layers—introducing the calibrated LinearSVC ML pipeline, real-time URLhaus threat feeds, high-performance SSE streaming telemetry, and robust Gmail auto-labeling mechanisms. By executing these planned phases and deploying to production cloud infrastructure, Igrris will achieve its goal of becoming a comprehensive, autonomous inbox defense platform.
+🏗️ FOUNDATION ───► 🤖 ML ─────────► 🛡️ THREAT ───► 🏷️ LABELS ───► ☁️ PROD
+     │                  │                 │                │                │
+   DONE                NEXT             PLANNED          PLANNED          TARGET
+```
+
+---
+
+# 🎯 Final Objective
+
+## Build an Autonomous Inbox Defense Layer
+
+```text
+📧 Gmail
+   +
+🧠 NLP
+   +
+🤖 Machine Learning
+   +
+🛡️ Threat Intelligence
+   +
+⚡ Real-Time Streaming
+   +
+🏷️ Automated Organization
+   +
+☁️ Cloud Infrastructure
+   =
+⚔️ INTELLIGENT INBOX DEFENSE
+```
+
+The final platform is intended to:
+
+1. 🔎 Analyze incoming email.
+2. 🤖 Classify suspicious messages using ML.
+3. 🛡️ Correlate URLs with threat-intelligence feeds.
+4. ⚡ Stream scan activity in real time.
+5. 🏷️ Automatically organize Gmail messages.
+6. 🔒 Protect critical Gmail system folders.
+7. ☁️ Operate through production cloud infrastructure.
+
+---
+
+# 🏁 Project Completion Target
+
+| Stage                        | Progress |    State    |
+| :--------------------------- | :------: | :---------: |
+| 🏗️ Architectural Foundations | **25%**  | 🟢 Complete |
+| 🤖 Machine Learning          | **50%**  |   🔵 Next   |
+| 🛡️ Threat Intelligence       | **70%**  | ⚪ Planned  |
+| 🏷️ Automated Labeling        | **85%**  | ⚪ Planned  |
+| ☁️ Production & QA           | **100%** |  🎯 Target  |
+
+---
+
+<div align="center">
+
+# ⚔️ IGRRIS
+
+### **From Inbox → Intelligence → Detection → Defense**
+
+<br>
+
+`25% COMPLETE` → `100% TARGET`
+
+<br>
+
+**FastAPI · Nuxt 3 · Vue 3 · Scikit-Learn · Gmail API · Google OAuth**
+
+<br>
+
+⭐ **AI-Powered Gmail Intelligence & Threat Defense**
+
+</div>
